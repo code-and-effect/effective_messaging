@@ -1,5 +1,7 @@
 EffectiveMessaging.setup do |config|
-  # config.messaging_table_name = :messaging
+  config.chats_table_name = :chats
+  config.chat_users_table_name = :chat_users
+  config.chat_messages_table_name = :chat_messages
 
   # Layout Settings
   # Configure the Layout per controller, or all at once
