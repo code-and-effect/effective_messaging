@@ -30,8 +30,13 @@ module EffectiveMessagingUser
     chat_users.find { |cu| cu.chat_id == chat.id }
   end
 
-  def chat_user_display_name
+  def effective_messaging_display_name
     to_s
+  end
+
+  def effective_messaging_anonymous_name
+    raise('to be implemented by the app')
+    # Base64::encode64("#{id}-#{created_at.strftime('%F')}").chomp.first(8)
   end
 
   # Find or build

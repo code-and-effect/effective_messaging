@@ -19,7 +19,7 @@ module Admin
 
       if attributes[:user_id].present? && attributes[:user_type].present?
         user = attributes[:user_type].constantize.find(attributes[:user_id])
-        scope = Effective::ChatMessage.for_user(user)
+        scope = Effective::ChatMessage.where(user: user)
       end
 
       scope

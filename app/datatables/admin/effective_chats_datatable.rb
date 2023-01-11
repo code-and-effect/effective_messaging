@@ -26,7 +26,7 @@ module Admin
           end
         end.join
       end.search do |collection, term|
-        Effective::Chat.for_chat_user_name(term)
+        Effective::Chat.search_by_chat_user_name(term)
       end
 
       col :chat_messages_count, label: 'Num Messages'

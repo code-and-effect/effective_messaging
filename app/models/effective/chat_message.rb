@@ -21,8 +21,6 @@ module Effective
     scope :sorted, -> { order(:id) }
     scope :deep, -> { includes(:chat) }
 
-    scope :for_user, -> (user) { where(chat_id: ChatUser.where(user: user).select(:chat_id)) }
-
     # Use the controller's current_user to initialize the chat_user, user and name
     before_validation(if: -> { new_record? && chat.present? }) do
       self.user ||= chat.current_user

@@ -4,7 +4,7 @@ module Effective
   class Chat < ActiveRecord::Base
     self.table_name = EffectiveMessaging.chats_table_name.to_s
 
-    NOTIFY_AFTER = 3.minutes
+    NOTIFY_AFTER = 2.minutes
 
     attr_accessor :current_user
     attr_accessor :user_type # Must be set when creating a chat by admin/new form, and passing user_ids
@@ -35,7 +35,7 @@ module Effective
     scope :deep, -> { includes(:chat_users, :chat_messages) }
 
     scope :for_user, -> (user) { where(id: ChatUser.where(user: user).select(:chat_id)) }
-    scope :for_chat_user_name, -> (name) { where(id: ChatUser.with_name(name).select(:chat_id)) }
+    scope :search_by_chat_user_name, -> (name) { where(id: ChatUser.with_name(name).select(:chat_id)) }
 
     validates :title, presence: true, length: { maximum: 255 }
 
@@ -48,7 +48,7 @@ module Effective
       raise('expected an effective_messaging_user') unless user.class.respond_to?(:effective_messaging_user?)
 
       chat_user = chat_user(user: user)
-      raise('user is not a part of this chat') unless chat_user.present?
+      raise('expected user to be a chat_user in this chat') unless chat_user.present?
 
       # Build and send message
       chat_message = chat_messages.build(body: body, user: user, chat_user: chat_user, name: chat_user.name)
@@ -59,7 +59,7 @@ module Effective
       chat_message
     end
 
-    # Called when created by API or from the form
+    # Called by an after_commit on chat message
     def notify!(except: nil, force: false)
       raise('expected a ChatUser') if except.present? && !except.kind_of?(ChatUser)
 
