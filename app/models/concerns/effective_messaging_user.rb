@@ -30,6 +30,10 @@ module EffectiveMessagingUser
     chat_users.find { |cu| cu.chat_id == chat.id }
   end
 
+  def chat_user_display_name
+    to_s
+  end
+
   # Find or build
   # def build_chat_user(chat:)
   #   chat_user(chat: chat) || chat_users.build(chat: chat)

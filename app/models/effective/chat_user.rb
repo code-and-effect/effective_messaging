@@ -37,7 +37,7 @@ module Effective
     scope :deep, -> { includes(:chat) }
 
     before_validation do
-      self.display_name ||= user.to_s
+      self.display_name ||= user.chat_user_display_name
       self.anonymous_name ||= generate_anonymous_name()
     end
 

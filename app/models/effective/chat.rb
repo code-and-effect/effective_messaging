@@ -47,8 +47,6 @@ module Effective
     def send_message!(user:, body:)
       raise('expected an effective_messaging_user') unless user.class.respond_to?(:effective_messaging_user?)
 
-      raise('chat must be persisted') unless persisted?
-
       chat_user = chat_user(user: user)
       raise('user is not a part of this chat') unless chat_user.present?
 
@@ -56,13 +54,13 @@ module Effective
       chat_message = chat_messages.build(body: body, user: user, chat_user: chat_user, name: chat_user.name)
 
       # Creates message, which also calls notify! below
-      chat_message.save!
+      save!
 
       chat_message
     end
 
     # Called when created by API or from the form
-    def notify!(except: nil, force: true)
+    def notify!(except: nil, force: false)
       raise('expected a ChatUser') if except.present? && !except.kind_of?(ChatUser)
 
       # Notify everyone in the chat except the user that created this message

@@ -1,15 +1,11 @@
 module EffectiveMessagingTestBuilder
 
-  def create_effective_chat!
-    build_effective_chat.tap { |chat| chat.save! }
-  end
-
-  def build_effective_chat
+  def build_effective_chat(anonymous: false)
     user1 = create_user!
     user2 = create_user!
     user3 = create_user!
 
-    Effective::Chat.new(title: 'Effective Chat', users: [user1, user2, user3])
+    Effective::Chat.new(title: 'Effective Chat', anonymous: anonymous, users: [user1, user2, user3])
   end
 
   def create_user!
