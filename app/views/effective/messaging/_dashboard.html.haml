@@ -1,0 +1,10 @@
+%h2 Messages and Chat
+
+- if current_user.chats.present?
+  %p You are a member of #{pluralize(current_user.chats.length, 'chat')}.
+
+  - datatable = EffectiveResources.best('EffectiveChatsDatatable').new(self, namespace: :effective)
+  = render_datatable(datatable, simple: true)
+
+- else
+  %p You haven't received any messages. When you do, we'll show it here.

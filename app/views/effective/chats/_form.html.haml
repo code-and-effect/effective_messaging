@@ -1,0 +1,23 @@
+= effective_form_with(model: chat, engine: true, remote: true) do |f|
+  -# Doesn't do anything, we just need something to submit thats not the ID
+  = f.hidden_field :user_type
+
+  - # This is a remote form so we refresh all the chat messages each time we submit
+  = render(partial: 'effective/chats/chat_message', collection: chat.chat_messages, chat: chat)
+
+  %hr
+
+  - chat_message = chat.build_chat_message(user: current_user)
+  - chat_user = chat.chat_user(user: current_user)
+
+  .card
+    .card-header.bg-secondary
+      Send message
+    .card-body
+      %p Your name will be displayed as <strong>#{chat_user.name}</strong>.
+
+      = f.fields_for :chat_messages, chat_message do |fcm|
+        - # The user and name are set by controller's current_user
+        = fcm.text_area :body, required: true, label: 'Send message...'
+
+      = f.submit 'Send'

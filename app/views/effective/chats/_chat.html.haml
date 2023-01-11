@@ -1,0 +1,10 @@
+= render 'layout' do
+  %p Chatting with #{(chat.chat_users.reject { |cu| cu.user == current_user }).to_sentence} about #{chat}.
+
+  - if chat.anonymous?
+    %p= badges('anonymous')
+
+  - # New message form
+  = render('effective/chats/form', chat: chat)
+
+  %hr

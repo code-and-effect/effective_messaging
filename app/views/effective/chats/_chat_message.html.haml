@@ -1,0 +1,10 @@
+= render 'layout' do
+
+  - label = content_tag(:strong, chat_message.name) + ' commented ' + time_ago_in_words(chat_message.created_at) + ' ago'
+
+  .card
+    .card-header
+      = label
+      Yea
+    .card-body
+      = simple_format chat_message.body

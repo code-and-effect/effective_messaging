@@ -1,0 +1,8 @@
+= tabs do
+  = tab "Chat" do
+    = render 'admin/chats/form_chat', chat: chat
+
+  - if chat.persisted?
+    - if chat.respond_to?(:log_changes_datatable)
+      = tab "Logs" do
+        = render_inline_datatable(chat.log_changes_datatable)

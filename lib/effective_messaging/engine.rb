@@ -10,7 +10,7 @@ module EffectiveMessaging
     # Include acts_as_messaging concern and allow any ActiveRecord object to call it
     initializer 'effective_messaging.active_record' do |app|
       app.config.to_prepare do
-        #ActiveRecord::Base.extend(ActsAsMessaging::Base)
+        ActiveRecord::Base.extend(EffectiveMessagingUser::Base)
       end
     end
 

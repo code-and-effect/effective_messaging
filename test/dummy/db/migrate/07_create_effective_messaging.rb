@@ -1,6 +1,6 @@
 class CreateEffectiveMessaging < ActiveRecord::Migration[6.0]
   def change
-    create_table <%= @chats_table_name %> do |t|
+    create_table :chats do |t|
       t.integer :parent_id
       t.string :parent_type
 
@@ -13,7 +13,7 @@ class CreateEffectiveMessaging < ActiveRecord::Migration[6.0]
       t.timestamps
     end
 
-    create_table <%= @chat_users_table_name %> do |t|
+    create_table :chat_users do |t|
       t.integer :chat_id
 
       t.integer :user_id
@@ -25,7 +25,7 @@ class CreateEffectiveMessaging < ActiveRecord::Migration[6.0]
       t.timestamps
     end
 
-    create_table <%= @chat_messages_table_name %> do |t|
+    create_table :chat_messages do |t|
       t.integer :chat_id
 
       t.integer :user_id

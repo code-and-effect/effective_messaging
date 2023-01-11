@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 6) do
+ActiveRecord::Schema.define(version: 7) do
 
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.string "name", null: false
@@ -87,6 +87,36 @@ ActiveRecord::Schema.define(version: 6) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_carts_on_user_id"
+  end
+
+  create_table "chat_messages", force: :cascade do |t|
+    t.integer "chat_id"
+    t.integer "user_id"
+    t.string "user_type"
+    t.text "body"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "chat_users", force: :cascade do |t|
+    t.integer "chat_id"
+    t.integer "user_id"
+    t.string "user_type"
+    t.string "name"
+    t.string "anonymous_name"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "chats", force: :cascade do |t|
+    t.integer "parent_id"
+    t.string "parent_type"
+    t.string "title"
+    t.boolean "anonymous", default: false
+    t.integer "chat_messages_count"
+    t.string "token"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "customers", force: :cascade do |t|
