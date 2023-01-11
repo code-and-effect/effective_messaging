@@ -3,7 +3,11 @@
   = f.hidden_field :user_type
 
   - # This is a remote form so we refresh all the chat messages each time we submit
+  = render('effective/chats/summary', chat: chat)
   = render(partial: 'effective/chats/chat_message', collection: chat.chat_messages, chat: chat)
+
+  - if chat.chat_messages.blank?
+    %p There are no messages so far. Please send one!
 
   %hr
 

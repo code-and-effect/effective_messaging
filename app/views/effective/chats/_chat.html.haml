@@ -1,13 +1,10 @@
 = render 'layout' do
   - chat_user = chat.chat_user(user: current_user)
 
-  %p Chatting with #{(chat.chat_users - [chat_user]).to_sentence} about #{chat}.
-
-  - if chat.anonymous?
-    %p= badges('anonymous')
-
   - # New message form
-  - if chat_user.present?
+  - if chat_user.present? && EffectiveResources.authorized?(self, :update, chat)
     = render('effective/chats/form', chat: chat)
 
-  %hr
+  - elsif EffectiveResources.authorized?(self, :show, chat)
+    = render('effective/chats/summary', chat: chat)
+    = render(partial: 'effective/chats/chat_message', collection: chat.chat_messages, chat: chat)

@@ -1,0 +1,13 @@
+%p
+  - if chat.anonymous?
+    = badges('anonymous')
+
+  = succeed('.') do
+    A chat with
+    = pluralize(chat.chat_users.count, 'participants')
+    opened
+    = time_ago_in_words(chat.created_at)
+    ago
+
+  = succeed('.') do
+    = pluralize(chat.chat_messages_count, 'message')
