@@ -90,12 +90,7 @@ module Effective
       chat_user(user: user) || chat_users.build(user: user)
     end
 
-    def chat_messages_for(user:)
-      raise('expected an effective_messaging_user') unless user.class.respond_to?(:effective_messaging_user?)
-      chat_messages.select { |cm| cm.user_id == user.id && cm.user_type == user.class.name }
-    end
-
-    # Find or build
+    # Always build
     def build_chat_message(user:, body: nil)
       raise('expected an effective_messaging_user') unless user.class.respond_to?(:effective_messaging_user?)
       chat_messages.build(user: user, body: body)
@@ -116,8 +111,8 @@ module Effective
       # The users in this chat
       self.users = user_type.constantize.where(id: user_ids)
 
-      # Return all chat users. Some might be marked for destruction.
-      chat_users
+      # Return user_ids
+      user_ids
     end
 
     def users=(users)
@@ -127,7 +122,7 @@ module Effective
       # Mark for destruction
       chat_users.each { |cu| cu.mark_for_destruction unless users.include?(cu.user) }
 
-      # Build
+      # Find or build chat_users
       users.each { |user| build_chat_user(user: user) }
 
       # Return users

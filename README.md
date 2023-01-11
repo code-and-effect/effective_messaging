@@ -40,46 +40,73 @@ rake db:migrate
 
 Please add the following to your User model:
 
-```
+```ruby
+effective_messaging_user                 # effective_messaging_user
+
+# Effective messaging
+def effective_messaging_display_name
+  to_s
+end
+
+# An anonymous token for your users
+def effective_messaging_anonymous_name
+  'Anonymous' + Base64::encode64("#{id}-#{created_at.strftime('%F')}").chomp.first(8)
+end
 ```
 
-and
+Add dashboard:
 
+```haml
+.card.card-dashboard.mb-4
+  .card-body= render 'effective/messaging/dashboard'
 ```
+
 Add a link to the admin menu:
 
 ```haml
-- if can? :admin, :effective_messaging
-  - if can? :index, Effective::Messaging
-    = nav_link_to 'Messaging', effective_messaging.admin_messagings_path
-```
+- if can?(:admin, :effective_messaging) && can?(:index, Effective::Chat)
+  = nav_link_to 'Chats', effective_messaging.admin_chats_path
 
-## Configuration
+- if can?(:admin, :effective_messaging) && can?(:index, Effective::ChatMessage)
+  = nav_link_to 'Chat Messages', effective_messaging.admin_chat_messages_path
+```
 
 ## Authorization
 
 All authorization checks are handled via the effective_resources gem found in the `config/initializers/effective_resources.rb` file.
-
-## Effective Roles
-
-This gem works with effective roles for the representative roles.
-
-Configure your `config/initializers/effective_roles.rb` something like this:
-
-```
-```
 
 ## Permissions
 
 The permissions you actually want to define are as follows (using CanCan):
 
 ```ruby
-if user.persisted?
-end
+can(:index, Effective::Chat)
+can([:show, :update], Effective::Chat) { |chat| user.chat_user(chat: chat).present? }
 
 if user.admin?
   can :admin, :effective_messaging
+
+  can(crud, Effective::Chat)
+  can(crud, Effective::ChatUser)
+  can(crud - [:new, :create], Effective::ChatMessage)
 end
+```
+
+## Creating a chat
+
+```ruby
+users = User.where(id: [1,2,3])
+
+chat = Effective::Chat.new(title: 'A cool chat', anonymous: true, users: users)
+chat.save!
+```
+
+and you can just render it *outside of a form*:
+
+```haml
+- chat = Effective::Chat.first
+= render(chat)
+= render('effective/chats/chat', chat: chat)
 ```
 
 ## License

@@ -7,9 +7,10 @@ module Effective
     log_changes(to: :chat) if respond_to?(:log_changes)
 
     belongs_to :chat, counter_cache: true
-    belongs_to :chat_user
 
-    belongs_to :user, polymorphic: true # Who sent this message
+    # Who sent this message
+    belongs_to :chat_user
+    belongs_to :user, polymorphic: true
 
     effective_resource do
       name          :string       # The name, anonymous or display, when sent
