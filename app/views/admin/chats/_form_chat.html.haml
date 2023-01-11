@@ -11,7 +11,7 @@
 
   - ajax_url = (@select2_ajax_path || effective_resources.users_admin_select2_ajax_index_path) unless Rails.env.test?
 
-  = f.select :user_ids, current_user.class.all, label: 'Buyer', required: true,
-    ajax_url: ajax_url, hint: 'The user that should purchase this order.'
+  = f.select :user_ids, current_user.class.all, required: true,
+    ajax_url: ajax_url, hint: 'The users that can participate in this chat'
 
   = effective_submit(f)

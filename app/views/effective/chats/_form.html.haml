@@ -14,10 +14,10 @@
     .card-header.bg-secondary
       Send message
     .card-body
-      %p Your name will be displayed as <strong>#{chat_user.name}</strong>.
+      %p Your name is displayed as <strong>#{chat_user.name}</strong>.
 
       = f.fields_for :chat_messages, chat_message do |fcm|
         - # The user and name are set by controller's current_user
         = fcm.text_area :body, required: true, label: 'Send message...'
 
-      = f.submit 'Send'
+      = f.submit 'Send Message'

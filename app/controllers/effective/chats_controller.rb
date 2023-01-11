@@ -9,7 +9,7 @@ module Effective
     private
 
     def permitted_params
-      params.require(:effective_chat).permit(:user_type, chat_messages_attributes: [:body])
+      params.require(:effective_chat).except(:user_type).permit(chat_messages_attributes: [:body])
     end
 
   end

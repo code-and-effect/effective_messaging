@@ -2,10 +2,6 @@
 
 Rails.application.routes.draw do
   mount EffectiveMessaging::Engine => '/', as: 'effective_messaging'
-
-  namespace :admin do
-    resources :chats
-  end
 end
 
 EffectiveMessaging::Engine.routes.draw do
@@ -15,6 +11,8 @@ EffectiveMessaging::Engine.routes.draw do
   end
 
   namespace :admin do
+    resources :chats
+    resources :chat_messages, only: [:index, :show, :destroy]
   end
 
 end

@@ -4,34 +4,55 @@ module Effective
     include EffectiveMailer
     include EffectiveEmailTemplatesMailer if EffectiveMessaging.use_effective_email_templates
 
-    # def messaging_submitted(resource, opts = {})
-    #   @assigns = assigns_for(resource)
-    #   @applicant = resource
+    def chat_new_message(chat, chat_user, opts = {})
+      raise('expected a chat') unless chat.kind_of?(Chat)
+      raise('expected a chat user') unless chat_user.kind_of?(ChatUser)
 
-    #   subject = subject_for(__method__, "Messaging Submitted - #{resource}", resource, opts)
-    #   headers = headers_for(resource, opts)
+      user = chat_user.user
+      raise('expected user to have an email') unless user.try(:email).present?
 
-    #   mail(to: resource.user.email, subject: subject, **headers)
-    # end
+      @assigns = assigns_for(chat).merge(assigns_for(chat_user))
+
+      subject = subject_for(__method__, "New Message - #{chat}", chat, opts)
+      headers = headers_for(chat, opts)
+
+      mail(to: user.email, subject: subject, **headers)
+    end
 
     protected
 
     def assigns_for(resource)
-      if resource.kind_of?(Effective::Messaging)
-        return messaging_assigns(resource)
+      if resource.kind_of?(Effective::Chat)
+        return chat_assigns(resource)
+      end
+
+      if resource.kind_of?(Effective::ChatUser)
+        return chat_user_assigns(resource)
       end
 
       raise('unexpected resource')
     end
 
-    def messaging_assigns(resource)
-      raise('expected an messaging') unless resource.class.respond_to?(:effective_messaging_resource?)
+    def chat_assigns(chat)
+      raise('expected a chat') unless chat.kind_of?(Chat)
 
       values = {
-        date: messaging.created_at.strftime('%F')
+        date: chat.created_at.strftime('%F'),
+        title: chat.title,
+        url: effective_messaging.chat_url(chat)
       }.compact
 
-      { messaging: values }
+      { chat: values }
+    end
+
+    def chat_user_assigns(chat_user)
+      raise('expected a chat_user') unless chat_user.kind_of?(ChatUser)
+
+      values = {
+        name: chat_user.name
+      }.compact
+
+      { user: values }
     end
 
   end

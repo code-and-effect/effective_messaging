@@ -91,8 +91,10 @@ ActiveRecord::Schema.define(version: 7) do
 
   create_table "chat_messages", force: :cascade do |t|
     t.integer "chat_id"
+    t.integer "chat_user_id"
     t.integer "user_id"
     t.string "user_type"
+    t.string "name"
     t.text "body"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
@@ -102,8 +104,9 @@ ActiveRecord::Schema.define(version: 7) do
     t.integer "chat_id"
     t.integer "user_id"
     t.string "user_type"
-    t.string "name"
+    t.string "display_name"
     t.string "anonymous_name"
+    t.datetime "last_notified_at"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end
@@ -113,7 +116,7 @@ ActiveRecord::Schema.define(version: 7) do
     t.string "parent_type"
     t.string "title"
     t.boolean "anonymous", default: false
-    t.integer "chat_messages_count"
+    t.integer "chat_messages_count", default: 0
     t.string "token"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false

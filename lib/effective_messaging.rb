@@ -15,4 +15,8 @@ module EffectiveMessaging
 
   include EffectiveGem
 
+  def self.mailer_class
+    mailer&.constantize || Effective::MessagingMailer
+  end
+
 end

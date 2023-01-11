@@ -6,9 +6,9 @@ module Effective
 
     log_changes(to: :chat) if respond_to?(:log_changes)
 
-    has_many_attached :files
-
     belongs_to :chat, counter_cache: true
+    belongs_to :chat_user
+
     belongs_to :user, polymorphic: true # Who sent this message
 
     effective_resource do
@@ -19,18 +19,18 @@ module Effective
     end
 
     scope :sorted, -> { order(:id) }
-    scope :deep, -> { with_attached_files.includes(:chat) }
+    scope :deep, -> { includes(:chat) }
 
-    # These two validations only trust the body sent.
-    # And use the controller's current_user to initialize the user
-    before_validation(if: -> { new_record? && user.blank? && chat.present? }) do
+    scope :for_user, -> (user) { where(chat_id: ChatUser.where(user: user).select(:chat_id)) }
+
+    # Use the controller's current_user to initialize the chat_user, user and name
+    before_validation(if: -> { new_record? && chat.present? }) do
       self.user ||= chat.current_user
+      self.chat_user ||= chat.chat_user(user: self.user)
+      self.name ||= self.chat_user&.name
     end
 
-    # And to find the chat user and set the anonymous or display name
-    before_validation(if: -> { new_record? && user.present? && chat.present? }) do
-      self.name ||= chat.chat_user(user: user)&.name
-    end
+    after_commit(on: :create) { chat.notify!(except: chat_user) }
 
     validates :name, presence: true
     validates :body, presence: true

@@ -17,9 +17,18 @@ module Effective
     belongs_to :chat
     belongs_to :user, polymorphic: true
 
+    scope :with_name, -> (name) {
+      anonymous = where(chat_id: Chat.where(anonymous: true)).where('anonymous_name ILIKE ?', "%#{name}%")
+      displayed = where(chat_id: Chat.where(anonymous: false)).where('display_name ILIKE ?', "%#{name}%")
+
+      anonymous.or(displayed)
+    }
+
     effective_resource do
       display_name      :string
       anonymous_name    :string
+
+      last_notified_at  :datetime
 
       timestamps
     end

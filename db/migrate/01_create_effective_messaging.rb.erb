@@ -22,15 +22,19 @@ class CreateEffectiveMessaging < ActiveRecord::Migration[6.0]
       t.string :display_name
       t.string :anonymous_name
 
+      t.datetime :last_notified_at
+
       t.timestamps
     end
 
     create_table <%= @chat_messages_table_name %> do |t|
       t.integer :chat_id
+      t.integer :chat_user_id
 
       t.integer :user_id
       t.string :user_type
 
+      t.string :name
       t.text :body
 
       t.timestamps

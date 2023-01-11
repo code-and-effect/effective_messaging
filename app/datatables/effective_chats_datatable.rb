@@ -5,15 +5,11 @@ class EffectiveChatsDatatable < Effective::Datatable
 
     col :token, visible: false
     col :created_at, visible: false
-    col :updated_at
+    col :updated_at, label: 'Last message'
 
     col :title
-
     col :chat_users, label: 'Participants'
     col :chat_messages_count, label: 'Messages'
-
-    col :anonymous, visible: false
-    col :parent, visible: false
 
     actions_col
   end
