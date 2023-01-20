@@ -86,8 +86,10 @@ module Effective
       chat_users.find { |cu| cu.user_id == user.id && cu.user_type == user.class.name }
     end
 
-    def build_chat_user(user:)
-      chat_user(user: user) || chat_users.build(user: user)
+    def build_chat_user(user:, anonymous_name: nil)
+      cu = chat_user(user: user) || chat_users.build(user: user)
+      cu.assign_attributes(anonymous_name: anonymous_name) if anonymous_name.present?
+      cu
     end
 
     # Always build

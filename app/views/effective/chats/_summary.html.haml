@@ -1,10 +1,18 @@
+- current_chat_user = chat.chat_user(user: current_user)
+- chat_users_count = chat.chat_users.count
+
 %p
   - if chat.anonymous?
     = badges('anonymous')
 
   = succeed('.') do
     A chat with
-    = pluralize(chat.chat_users.count, 'participants')
+
+    - if current_chat_user.present? && chat_users_count < 5
+      = (chat.chat_users - [current_chat_user]).map(&:name).to_sentence
+    - else
+      = pluralize(chat_users_count, 'participants')
+
     opened
     = time_ago_in_words(chat.created_at)
     ago
