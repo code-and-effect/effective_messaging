@@ -11,7 +11,7 @@ module Effective
       user = chat_user.user
       raise('expected user to have an email') unless user.try(:email).present?
 
-      @assigns = assigns_for(chat).merge(assigns_for(chat_user))
+      @assigns = chat_assigns(chat, user: user).merge(assigns_for(chat_user))
 
       subject = subject_for(__method__, "New Message - #{chat}", chat, opts)
       headers = headers_for(chat, opts)
@@ -33,13 +33,17 @@ module Effective
       raise('unexpected resource')
     end
 
-    def chat_assigns(chat)
+    def chat_assigns(chat, user:)
       raise('expected a chat') unless chat.kind_of?(Chat)
+      raise('expected a user') unless user.present?
+
+      url = chat.parent&.chat_url(chat: chat, user: user, root_url: root_url)
+      url ||= effective_messaging.chat_url(chat)
 
       values = {
         date: chat.created_at.strftime('%F'),
         title: chat.title,
-        url: effective_messaging.chat_url(chat)
+        url: url
       }.compact
 
       { chat: values }

@@ -35,4 +35,9 @@ module EffectiveMessagingParent
     build_chat.tap { |chat| chat.save! }
   end
 
+  # Hook so the parent can specify the correct url for this user to visit to see the new chat message
+  def chat_url(chat:, user:, root_url:)
+    nil
+  end
+
 end
