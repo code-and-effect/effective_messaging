@@ -22,7 +22,7 @@ module Effective
     end
 
     scope :sorted, -> { order(:id) }
-    scope :deep, -> { includes(:chat) }
+    scope :deep, -> { all }
 
     validates :from, presence: true, email: true
     validates :body, presence: true, liquid: true

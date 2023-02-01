@@ -23,6 +23,7 @@ module EffectiveMessaging
         @chats_table_name  = ':' + EffectiveMessaging.chats_table_name.to_s
         @chat_users_table_name  = ':' + EffectiveMessaging.chat_users_table_name.to_s
         @chat_messages_table_name  = ':' + EffectiveMessaging.chat_messages_table_name.to_s
+        @notifications_table_name  = ':' + EffectiveMessaging.notifications_table_name.to_s
 
         migration_template ('../' * 3) + 'db/migrate/01_create_effective_messaging.rb.erb', 'db/migrate/create_effective_messaging.rb'
       end
