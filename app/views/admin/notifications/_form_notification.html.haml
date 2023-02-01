@@ -1,0 +1,35 @@
+= effective_form_with(model: [:admin, notification], engine: true) do |f|
+  %h2 Data Source
+  %p
+    Please select a
+    = link_to 'report', effective_reports.admin_reports_path, target: '_blank'
+    with an email report column to use as the data source.
+
+  %p Each result from the report will be sent a notification.
+
+  .row
+    .col-md-6
+      = f.select :report_id, Effective::Report.sorted.emails.all, label: 'Report with email column'
+
+  %h2 Schedule
+  %p Please select a date when the notifications should be sent
+
+  .row
+    .col-md-6
+      = f.datetime_field :send_at, label: 'Send the notification at', input_js: { minDate: Time.zone.now.strftime('%F %H:%M:%S') }
+
+  %h2 Notification
+  %p The following notification will be sent to each row of the data source
+
+  = f.email_field :from
+  = f.text_field :subject
+  = f.text_area :body
+
+  - if f.object.report.present?
+    %p The following variables are available:
+
+    %ul
+      - f.object.report_email_variables.each do |name|
+        %li {{ #{name} }}
+
+  = effective_submit(f)

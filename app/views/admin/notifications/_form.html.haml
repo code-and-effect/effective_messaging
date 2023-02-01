@@ -1,0 +1,7 @@
+= tabs do
+  = tab 'Notification' do
+    = render 'admin/notifications/form_notification', notification: notification
+
+  - if notification.persisted? && notification.respond_to?(:log_changes_datatable)
+    = tab 'Logs' do
+      = render_datatable(notification.log_changes_datatable)

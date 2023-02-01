@@ -1,0 +1,24 @@
+/= render 'effective/notifications/notification', notification: notification, admin: true
+
+%p
+  This notification will be sent to all results from the #{notification.report} report at the time of sending.
+
+%p
+  Currently there are
+  = pluralize(notification.report.collection().count, 'result')
+  that would be notified.
+
+= card(notification) do
+  %table.table
+    %tbody
+      %tr
+        %th Send At
+        %td= notification.send_at.strftime('%F %H:%M')
+
+      %tr
+        %th Report
+        %td= link_to(notification.report, effective_reports.admin_report_path(notification.report), target: '_blank')
+
+      %tr
+        %th Last Notified At
+        %td= notification.last_notified_at&.strftime('%F %H:%M') || 'Never'

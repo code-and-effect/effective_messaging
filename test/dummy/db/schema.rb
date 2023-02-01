@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2023_02_01_162247) do
+ActiveRecord::Schema.define(version: 2023_02_01_184336) do
 
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.string "name", null: false
@@ -148,11 +148,17 @@ ActiveRecord::Schema.define(version: 2023_02_01_162247) do
   end
 
   create_table "notifications", force: :cascade do |t|
+    t.integer "parent_id"
+    t.string "parent_type"
+    t.integer "user_id"
+    t.string "user_type"
+    t.integer "report_id"
+    t.datetime "send_at"
     t.string "subject"
+    t.text "body"
     t.string "from"
     t.string "cc"
     t.string "bcc"
-    t.text "body"
     t.datetime "last_notified_at"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
