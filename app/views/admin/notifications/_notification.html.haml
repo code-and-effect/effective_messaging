@@ -1,0 +1,71 @@
+/= render 'effective/notifications/notification', notification: notification, admin: true
+
+- results_count = notification.report.collection().count
+
+%p
+  This notification will be sent to all rows from the
+  = link_to(notification.report, effective_reports.admin_report_path(notification.report), target: '_blank')
+  report at the time of sending.
+
+%p Currently there are #{pluralize(results_count, 'rows')} that would be notified.
+
+= card(notification) do
+  %table.table
+    %tbody
+      %tr
+        %th Send At
+        %td= notification.send_at.strftime('%F %H:%M')
+
+      %tr
+        %th Report
+        %td= link_to(notification.report, effective_reports.admin_report_path(notification.report), target: '_blank')
+
+      %tr
+        %th Current rows count
+        %td= results_count
+
+      %tr
+        %th Started At
+        %td= notification.started_at&.strftime('%F %H:%M') || 'Never'
+
+      %tr
+        %th Completed At
+        %td= notification.completed_at&.strftime('%F %H:%M') || 'Never'
+
+      %tr
+        %th Notifications Sent
+        %td= notification.notifications_sent.presence || 'None'
+
+- if results_count > 0
+  %p Using a random row from the data source, a preview of the notification follows:
+
+  = card('Preview of Notification') do
+    - resource = notification.report.collection.order('RANDOM()').first
+    - rendered = notification.render_email(resource)
+
+    %table.table
+      %tbody
+        %tr
+          %th To
+          %td= rendered.fetch(:to)
+        %tr
+          %th From
+          %td= rendered.fetch(:from)
+
+        - if (cc = rendered[:cc]).present?
+          %tr
+            %th CC
+            %td= cc
+
+        - if (bcc = rendered[:bcc]).present?
+          %tr
+            %th BCC
+            %td= bcc
+
+        %tr
+          %th Subject
+          %td= rendered.fetch(:subject)
+
+        %tr
+          %td{colspan: 2}
+            = simple_format(rendered.fetch(:body).to_s)

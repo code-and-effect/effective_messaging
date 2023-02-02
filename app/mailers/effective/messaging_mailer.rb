@@ -1,62 +1,31 @@
 module Effective
-  class MessagingMailer < EffectiveMessaging.parent_mailer_class
-
+  class MessagingMailer < EffectiveReports.parent_mailer_class
     include EffectiveMailer
-    include EffectiveEmailTemplatesMailer if EffectiveMessaging.use_effective_email_templates
 
-    def chat_new_message(chat, chat_user, opts = {})
-      raise('expected a chat') unless chat.kind_of?(Chat)
-      raise('expected a chat user') unless chat_user.kind_of?(ChatUser)
+    def notification(notification, resource, opts = {})
+      raise('expected an Effective::Notification') unless notification.kind_of?(Effective::Notification)
+      raise('expected a resource') unless resource.present?
 
-      user = chat_user.user
-      raise('expected user to have an email') unless user.try(:email).present?
+      # Returns a Hash of params to pass to mail()
+      # Includes a :to, :from, etc
+      rendered = notification.render_email(resource)
 
-      @assigns = chat_assigns(chat, user: user).merge(assigns_for(chat_user))
+      # Works with effective_logging to associate this email with the notification
+      headers = headers_for(notification, opts)
 
-      subject = subject_for(__method__, "New Message - #{chat}", chat, opts)
-      headers = headers_for(chat, opts)
-
-      mail(to: user.email, subject: subject, **headers)
-    end
-
-    protected
-
-    def assigns_for(resource)
-      if resource.kind_of?(Effective::Chat)
-        return chat_assigns(resource)
+      # Use postmark broadcast-stream
+      if defined?(Postmark)
+        headers.merge!(message_stream: 'broadcast-stream')
       end
 
-      if resource.kind_of?(Effective::ChatUser)
-        return chat_user_assigns(resource)
-      end
+      # Calls effective_resources subject proc, so we can prepend [LETTERS]
+      subject = subject_for(__method__, rendered.fetch(:subject), resource, opts)
 
-      raise('unexpected resource')
-    end
+      # All the params for mail
+      params = rendered.merge(headers).merge(subject: subject)
 
-    def chat_assigns(chat, user:)
-      raise('expected a chat') unless chat.kind_of?(Chat)
-      raise('expected a user') unless user.present?
 
-      url = chat.parent&.chat_url(chat: chat, user: user, root_url: root_url)
-      url ||= effective_messaging.chat_url(chat)
-
-      values = {
-        date: chat.created_at.strftime('%F'),
-        title: chat.title,
-        url: url
-      }.compact
-
-      { chat: values }
-    end
-
-    def chat_user_assigns(chat_user)
-      raise('expected a chat_user') unless chat_user.kind_of?(ChatUser)
-
-      values = {
-        name: chat_user.name
-      }.compact
-
-      { user: values }
+      mail(params)
     end
 
   end
