@@ -1,13 +1,9 @@
-/= render 'effective/notifications/notification', notification: notification, admin: true
-
-- results_count = notification.report.collection().count
-
 %p
   This notification will be sent to all rows from the
   = link_to(notification.report, effective_reports.admin_report_path(notification.report), target: '_blank')
   report at the time of sending.
 
-%p Currently there are #{pluralize(results_count, 'rows')} that would be notified.
+%p Currently there are #{pluralize(notification.rows_count, 'rows')} that would be notified.
 
 = card(notification) do
   %table.table
@@ -22,7 +18,7 @@
 
       %tr
         %th Current rows count
-        %td= results_count
+        %td= notification.rows_count
 
       %tr
         %th Started At
@@ -36,7 +32,7 @@
         %th Notifications Sent
         %td= notification.notifications_sent.presence || 'None'
 
-- if results_count > 0
+- if notification.rows_count > 0
   %p Using a random row from the data source, a preview of the notification follows:
 
   = card('Preview of Notification') do

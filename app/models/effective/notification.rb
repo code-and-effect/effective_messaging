@@ -6,6 +6,7 @@ module Effective
 
     attr_accessor :current_user
     attr_accessor :current_resource
+
     log_changes if respond_to?(:log_changes)
 
     # Unused. If we want to use notifications in a has_many way
@@ -88,6 +89,14 @@ module Effective
       Array(report&.report_columns).map(&:name)
     end
 
+    def rows_count
+      @rows_count ||= report.collection().count if report
+    end
+
+    def in_progress?
+      started_at.present? && completed_at.blank?
+    end
+
     def notifiable?
       started_at.blank? && completed_at.blank?
     end
@@ -96,10 +105,10 @@ module Effective
       notifiable? && Time.zone.now >= send_at
     end
 
-    def notify!(force: true, limit: 5)
+    def notify!(force: false, limit: nil)
       return false unless (notify_now? || force)
 
-      update!(started_at: Time.zone.now)
+      update!(started_at: Time.zone.now, completed_at: nil, notifications_sent: nil)
 
       index = 0
 
@@ -107,7 +116,7 @@ module Effective
         print('.')
 
         assign_attributes(current_resource: resource)
-        EffectiveMessaging.mailer_class.send(:notification, self, resource).deliver_now
+        Effective::NotificationsMailer.notification(self, resource).deliver_now
 
         index += 1
         break if limit && index >= limit
@@ -118,14 +127,22 @@ module Effective
       update!(current_resource: nil, completed_at: Time.zone.now, notifications_sent: index)
     end
 
+    # The 'Send Now' action on admin. Enqueues a job that calls notify!(force: true)
+    def create_notification_job!
+      update!(started_at: Time.zone.now, completed_at: nil, notifications_sent: nil)
+
+      NotificationJob.perform_later(id, true) # force = true
+      true
+    end
+
     def render_email(resource)
       raise('expected a resource') unless resource.present?
 
       assigns = assigns_for(resource)
-      email = assigns.fetch(report.email_report_column.name) || raise('expected an email assigns')
+      to = assigns.fetch(report.email_report_column.name) || raise('expected an email assigns')
 
       {
-        to: email,
+        to: to,
         from: from,
         cc: cc.presence,
         bcc: bcc.presence,

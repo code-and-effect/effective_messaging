@@ -58,7 +58,9 @@ class CreateEffectiveMessaging < ActiveRecord::Migration[6.0]
       t.string :cc
       t.string :bcc
 
-      t.datetime :last_notified_at
+      t.datetime :started_at
+      t.datetime :completed_at
+      t.integer :notifications_sent
 
       t.timestamps
     end

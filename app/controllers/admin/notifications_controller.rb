@@ -5,6 +5,8 @@ module Admin
 
     include Effective::CrudController
 
+    submit :create_notification_job, 'Send Now'
+
     private
 
     def permitted_params

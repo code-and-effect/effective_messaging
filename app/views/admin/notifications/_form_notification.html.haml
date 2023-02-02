@@ -18,7 +18,10 @@
 
   .row
     .col-md-6
-      = f.datetime_field :send_at, label: 'Send the notification at', input_js: { minDate: Time.zone.now.strftime('%F %H:%M:%S') }
+      - minDate = [f.object.created_at, Time.zone.now].compact.min
+
+      = f.datetime_field :send_at, label: 'Send the notification at', input_js: { minDate: minDate.strftime('%F %H:%M:%S') },
+        hint: 'A future date. Changing this value will reset the started_at and completed_at dates so this notification can be sent again.'
     .col-md-6
       - if f.object.completed_at.present?
         = f.static_field :completed_at
@@ -40,4 +43,11 @@
         - f.object.report_variables.each do |name|
           %li {{ #{name} }}
 
-  = effective_submit(f)
+  = f.submit do
+    = f.save 'Save'
+
+    - if f.object.persisted? && !f.object.in_progress?
+      = f.save 'Send Now', class: 'btn btn-warning', 'data-confirm': "Really send #{pluralize(notification.rows_count, 'notification')} now?"
+
+    = f.save 'Add New', class: 'btn btn-secondary'
+    = f.save 'Continue', class: 'btn btn-secondary'

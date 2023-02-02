@@ -1,5 +1,5 @@
 module Effective
-  class MessagingMailer < EffectiveReports.parent_mailer_class
+  class NotificationsMailer < EffectiveReports.parent_mailer_class
     include EffectiveMailer
 
     def notification(notification, resource, opts = {})
