@@ -2,6 +2,8 @@
 
 Centralize all communications between one or more users.
 
+Works with effective_reports to schedule notifications to report results containing emails.
+
 ## Getting Started
 
 This requires Rails 6+ and Twitter Bootstrap 4 and just works with Devise.
@@ -69,6 +71,9 @@ Add a link to the admin menu:
 
 - if can?(:admin, :effective_messaging) && can?(:index, Effective::ChatMessage)
   = nav_link_to 'Chat Messages', effective_messaging.admin_chat_messages_path
+
+- if can?(:admin, :effective_messaging) && can?(:index, Effective::Notification)
+  = nav_link_to 'Chat Messages', effective_messaging.admin_notifications_path
 ```
 
 ## Authorization
@@ -89,6 +94,8 @@ if user.admin?
   can(crud, Effective::Chat)
   can(crud, Effective::ChatUser)
   can(crud - [:new, :create], Effective::ChatMessage)
+
+  can(crud + [:create_notification_job], Effective::Notification)
 end
 ```
 
@@ -108,6 +115,12 @@ and you can just render it *outside of a form*:
 = render(chat)
 = render('effective/chats/chat', chat: chat)
 ```
+
+## Creating a notification
+
+First create an effective report with an email column in the results.
+
+Then visit /admin/notifications to schedule a notification with a From, Subject and Body
 
 ## License
 

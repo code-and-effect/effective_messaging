@@ -31,7 +31,14 @@
   %h2 Notification
   %p The following notification will be sent to each row in the data source
 
-  = f.email_field :from
+  - froms = Array(EffectiveMessaging.froms)
+
+  - if froms.present?
+    - f.object.from ||= froms.first
+    = f.select :from, Array(froms)
+  - else
+    = f.email_field :from
+
   = f.text_field :subject
   = f.text_area :body
 

@@ -8,6 +8,10 @@ EffectiveMessaging.setup do |config|
   # Configure the Layout per controller, or all at once
   # config.layout = { application: 'application', admin: 'admin' }
 
+  # From Settings
+  # For the Admin new notification form. Set to an array to use a select, or nil to use a freeform text entry
+  config.froms = ['noreply@example.com']
+
   # Mailer Settings
   # Please see config/initializers/effective_messaging.rb for default effective_* gem mailer settings
   #

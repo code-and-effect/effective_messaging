@@ -12,7 +12,7 @@ module Effective
     # Unused. If we want to use notifications in a has_many way
     belongs_to :parent, polymorphic: true, optional: true
 
-    # When the notification belongs to one user
+    # Unused. When the notification belongs to one user
     belongs_to :user, polymorphic: true, optional: true
 
     # Effective namespace
