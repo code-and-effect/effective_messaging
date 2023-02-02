@@ -3,7 +3,7 @@ module Admin
     filters do
       scope :all
       scope :notifiable, label: 'Upcoming'
-      scope :completed
+      scope :completed, label: 'Past'
     end
 
     datatable do
@@ -19,7 +19,7 @@ module Admin
       col :subject
       col :body, visible: false
 
-      col :from, visible: false
+      col :from, visible: false, search: Array(EffectiveMessaging.froms).presence
       col :cc, visible: false
       col :bcc, visible: false
 
