@@ -17,4 +17,15 @@ class MessagingTest < ActiveSupport::TestCase
     assert chat.save!
   end
 
+  test 'report factory' do
+    report = build_report()
+    assert report.valid?
+    assert report.email_report_column.present?
+  end
+
+  test 'notification factory' do
+    notification = build_notification()
+    assert notification.valid?
+  end
+
 end

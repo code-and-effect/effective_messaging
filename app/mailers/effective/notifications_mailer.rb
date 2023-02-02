@@ -2,6 +2,8 @@ module Effective
   class NotificationsMailer < EffectiveReports.parent_mailer_class
     include EffectiveMailer
 
+    # Does not use effective_email_templates mailer
+
     def notification(notification, resource, opts = {})
       raise('expected an Effective::Notification') unless notification.kind_of?(Effective::Notification)
       raise('expected a resource') unless resource.present?
@@ -23,6 +25,12 @@ module Effective
 
       # Pass everything to mail
       mail(rendered.merge(headers).merge(subject: subject))
+    end
+
+    private
+
+    def mailer_settings
+      EffectiveMessaging
     end
 
   end

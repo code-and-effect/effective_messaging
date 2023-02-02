@@ -23,6 +23,4 @@ EffectiveMessaging.setup do |config|
   # config.mailer_admin = nil       # Default To value for Admin correspondence
   # config.mailer_subject = nil     # Proc.new method used to customize Subject
 
-  # Will work with effective_email_templates gem
-  config.use_effective_email_templates = true
 end

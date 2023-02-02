@@ -1,5 +1,29 @@
 module EffectiveMessagingTestBuilder
 
+  def build_notification(report: nil)
+    report ||= build_report()
+
+    notification = Effective::Notification.new(
+      report: report,
+      send_at: Time.zone.now,
+      from: 'noreply@example.com',
+      subject: "Hello {{ first_name }} {{ last_name }}",
+      body: "Body {{ first_name }} {{ last_name }}",
+    )
+  end
+
+  def build_report
+    user = build_user()
+
+    report = Effective::Report.new(title: 'Test Report', reportable_class_name: 'User')
+
+    user.reportable_attributes.slice(:email, :first_name, :last_name).each do |name, as|
+      report.report_columns.build(name: name, as: as)
+    end
+
+    report
+  end
+
   def build_effective_chat(anonymous: false)
     user1 = create_user!
     user2 = create_user!
