@@ -1,5 +1,5 @@
 module Effective
-  class NotificationsMailer < EffectiveReports.parent_mailer_class
+  class NotificationsMailer < EffectiveMessaging.parent_mailer_class
     include EffectiveMailer
 
     # Does not use effective_email_templates mailer
