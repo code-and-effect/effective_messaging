@@ -7,7 +7,7 @@
   = render(partial: 'effective/chats/chat_message', collection: chat.chat_messages, chat: chat)
 
   - if chat.chat_messages.blank?
-    %p There are no messages so far. Please send one!
+    %p There are no #{etsd(chat.chat_messages)} so far. Please send one!
 
   %hr
 
@@ -16,12 +16,12 @@
 
   .card
     .card-header.bg-secondary
-      Send message
+      = et('effective_messaging.send')
     .card-body
       %p Your name is displayed as <strong>#{chat_user.name}</strong>
 
       = f.fields_for :chat_messages, chat_message do |fcm|
         - # The user and name are set by controller's current_user
-        = fcm.text_area :body, required: true, label: 'Send message...'
+        = fcm.text_area :body, required: true, label: 'Send a message...'
 
-      = f.submit 'Send Message'
+      = f.submit et('effective_messaging.send')

@@ -6,16 +6,16 @@
     = badges('anonymous')
 
   = succeed('.') do
-    A chat with
+    A #{etd(chat)} with
 
     - if current_chat_user.present? && chat_users_count < 5
       = (chat.chat_users - [current_chat_user]).map(&:name).to_sentence
     - else
-      = pluralize(chat_users_count, 'participants')
+      = pluralize(chat_users_count, etd(chat.chat_users))
 
     opened
     = time_ago_in_words(chat.created_at)
     ago
 
   = succeed('.') do
-    = pluralize(chat.chat_messages_count, 'message')
+    = pluralize(chat.chat_messages_count, etd(chat.chat_messages))
