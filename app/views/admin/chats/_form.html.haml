@@ -1,5 +1,5 @@
 = tabs do
-  = tab "Chat" do
+  = tab(chat) do
     = render 'admin/chats/form_chat', chat: chat
 
   - if chat.persisted?

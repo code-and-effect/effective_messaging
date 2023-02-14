@@ -3,15 +3,15 @@
 
   - if f.object.anonymous?
     = f.static_field :anonymous do
-      %p Yes, this is an anonymous chat. User names and emails will not be displayed
+      %p Yes, this is an anonymous #{etd(f.object)}. User names and emails will not be displayed
   - else
-    = f.check_box :anonymous, label: 'Yes, this is an anonymous chat', hint: 'user names and emails will not be displayed'
+    = f.check_box :anonymous, label: "Yes, this is an anonymous #{etd(f.object)}", hint: 'user names and emails will not be displayed'
 
   = f.hidden_field :user_type, value: current_user.class.name
 
   - ajax_url = (@select2_ajax_path || effective_resources.users_admin_select2_ajax_index_path) unless Rails.env.test?
 
-  = f.select :user_ids, current_user.class.all, required: true,
-    ajax_url: ajax_url, hint: 'The users that can participate in this chat'
+  = f.select :user_ids, current_user.class.all, required: true, label: ets(chat.chat_users),
+    ajax_url: ajax_url, hint: "The users that can participate in this #{etd(f.object)}"
 
   = effective_submit(f)

@@ -1,0 +1,13 @@
+# Internationalization for the CAS tenant
+# Keys not found here will fallback to the default :en locale
+
+en:
+  effective_messaging:
+    dashboard: 'Chat Messages'
+    send: 'Send Message'
+
+  activerecord:
+    models:
+      effective/chat: 'Chat'
+      effective/chat_user: 'Chat Participant'
+      effective/chat_message: 'Chat Message'
