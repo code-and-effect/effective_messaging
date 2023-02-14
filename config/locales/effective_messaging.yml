@@ -1,6 +1,3 @@
-# Internationalization for the CAS tenant
-# Keys not found here will fallback to the default :en locale
-
 en:
   effective_messaging:
     dashboard: 'Chat Messages'
