@@ -1,5 +1,7 @@
 en:
   effective_messaging:
+    name: 'Effective Messaging'
+    acronym: 'Messaging'
     dashboard: 'Chat Messages'
     send: 'Send Message'
 
