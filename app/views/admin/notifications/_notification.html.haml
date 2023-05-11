@@ -6,11 +6,13 @@
 %p Currently there are #{pluralize(notification.rows_count, 'rows')} that would be notified.
 
 = card(notification) do
+  /= effective_table_with(notification)
+
   %table.table
     %tbody
-      %tr
-        %th Send At
-        %td= notification.send_at.strftime('%F %H:%M')
+      -# %tr
+      -#   %th Send At
+      -#   %td= notification.send_at.strftime('%F %H:%M')
 
       %tr
         %th Report

@@ -1,11 +1,25 @@
 = effective_form_with(model: [:admin, notification], engine: true) do |f|
+  %h2 Audience
+  %p Send this notification to the following:
+  = f.select :audience, Effective::Notification::AUDIENCES
+
+  = f.show_if(:audience, 'report') do
+    %p Each result from the data source below will be sent a notification.
+
+  = f.show_if(:audience, 'emails') do
+    %p A single notification will be sent to the following email addresses:
+
+    = f.select :audience_emails, f.object.audience_emails, multiple: true, tags: true, hint: 'Add one or more email address by pressing enter'
+    = f.check_box :attach_report, label: 'Yes, attach a .csv file with all the data to the email notifiation'
+
   %h2 Data Source
   %p
     Please select a
     = link_to 'report', effective_reports.admin_reports_path, target: '_blank'
-    with an email report column to use as the data source.
+    to use as the data source.
 
-  %p Each result from the report will be sent a notification.
+  %p.text-muted
+    %small A report with an email column is required when sending to each email from the data source.
 
   .row
     .col-md-6
@@ -14,19 +28,27 @@
         'data-load-ajax-div': '#effective-messaging-ajax'
 
   %h2 Schedule
-  %p Please select a date when the notifications should be sent
+  %p Please select how and when the notifications should be sent
 
-  .row
-    .col-md-6
-      - minDate = [f.object.created_at, Time.zone.now].compact.min
+  = f.select :schedule_type, Effective::Notification::SCHEDULE_TYPES
 
-      = f.datetime_field :send_at, label: 'Send the notification at', input_js: { minDate: minDate.strftime('%F %H:%M:%S') },
-        hint: 'A future date. Changing this value will reset the started_at and completed_at dates so this notification can be sent again.'
-    .col-md-6
-      - if f.object.completed_at.present?
-        = f.static_field :completed_at
-      - elsif f.object.started_at.present?
-        = f.static_field :started_at
+  = f.show_if(:schedule_type, 'immediate') do
+    %p Immediate
+
+  = f.show_if(:schedule_type, 'scheduled') do
+    %p Scheduled
+
+  -# .row
+  -#   .col-md-6
+  -#     - minDate = [f.object.created_at, Time.zone.now].compact.min
+
+  -#     = f.datetime_field :send_at, label: 'Send the notification at', input_js: { minDate: minDate.strftime('%F %H:%M:%S') },
+  -#       hint: 'A future date. Changing this value will reset the started_at and completed_at dates so this notification can be sent again.'
+  -#   .col-md-6
+  -#     - if f.object.completed_at.present?
+  -#       = f.static_field :completed_at
+  -#     - elsif f.object.started_at.present?
+  -#       = f.static_field :started_at
 
   %h2 Notification
   %p The following notification will be sent to each row in the data source

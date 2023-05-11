@@ -16,13 +16,48 @@ module Effective
     belongs_to :user, polymorphic: true, optional: true
 
     # Effective namespace
-    belongs_to :report, class_name: 'Effective::Report'
+    belongs_to :report, class_name: 'Effective::Report', optional: true
+
+    AUDIENCES = [
+      ['Send to each email from the data source', 'report'],
+      ['Send to the following addresses', 'emails']
+    ]
+
+    SCHEDULE_TYPES = [
+      ['On the first day they appear in the data source and every x days thereafter', 'immediate'],
+      ['When present in the data source on the following dates', 'scheduled']
+    ]
+
+    SCHEDULE_PERIODS = ['Send once', 'Send daily', 'Send weekly', 'Send monthly', 'Send quarterly', 'Send yearly', 'Send now']
+
+    SCHEDULE_METHODS = [
+      ['beginning_of_month', 'First day of the month'],
+      ['end_of_month', 'Last day of the month'],
+      ['beginning_of_quarter', 'First day of the quarter'],
+      ['end_of_quarter', 'Last day of the quarter'],
+      ['beginning_of_year', 'First day of the year'],
+      ['end_of_year', 'Last day of the year'],
+    ]
 
     CONTENT_TYPES = ['text/plain', 'text/html']
 
     effective_resource do
-      send_at           :datetime
+      audience           :string
+      audience_emails    :text
 
+      schedule_type      :string
+      schedule_period    :string
+      schedule_method    :string  # Send monthly or Send yearly
+      schedule_times     :integer
+
+      schedule_dates     :text    # Send once. Serialized array of dates.
+      schedule_wday      :integer # Send weekly
+      schedule_day       :integer # Send monthly or Send yearly
+      schedule_month     :integer # Send yearly
+
+      attach_report     :boolean
+
+      # Email
       subject           :string
       body              :text
 
@@ -38,21 +73,25 @@ module Effective
       timestamps
     end
 
+    serialize :audience_emails, Array
+    serialize :schedule_dates, Array
+
     scope :sorted, -> { order(:id) }
     scope :deep, -> { includes(report: :report_columns) }
 
-    scope :upcoming, -> { where('send_at > ?', Time.zone.now) }
+    scope :upcoming, -> { all }
     scope :started, -> { where.not(started_at: nil) }
     scope :completed, -> { where.not(completed_at: nil) }
 
     # Called by the notifier rake task
     scope :notifiable, -> { where(started_at: nil) }
 
-    before_validation(if: -> { send_at_changed? }) do
-      assign_attributes(started_at: nil, completed_at: nil, notifications_sent: nil)
-    end
+    # before_validation(if: -> { send_at_changed? }) do
+    #   assign_attributes(started_at: nil, completed_at: nil, notifications_sent: nil)
+    # end
 
-    validates :send_at, presence: true
+    validates :audience, presence: true, inclusion: { in: AUDIENCES.map(&:last) }
+
     validates :from, presence: true, email: true
     validates :subject, presence: true, liquid: true
     validates :body, presence: true, liquid: true
@@ -75,6 +114,14 @@ module Effective
 
     def to_s
       subject.presence || 'notification'
+    end
+
+    def audience_emails
+      Array(self[:audience_emails]) - [nil, '']
+    end
+
+    def schedule_dates
+      Array(self[:schedule_dates]) - [nil, '']
     end
 
     def template_subject
@@ -102,7 +149,8 @@ module Effective
     end
 
     def notify_now?
-      notifiable? && Time.zone.now >= send_at
+      false # TODO
+      #notifiable? && Time.zone.now >= send_at
     end
 
     def notify!(force: false, limit: nil)
