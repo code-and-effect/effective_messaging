@@ -92,6 +92,7 @@ module Effective
 
     validates :audience, presence: true, inclusion: { in: AUDIENCES.map(&:last) }
     validates :schedule_type, presence: true, inclusion: { in: SCHEDULE_TYPES.map(&:last) }
+    validates :report, presence: true, if: -> { audience == 'report' || attach_report? }
 
     validates :audience_emails, presence: true, if: -> { audience == 'emails' }
     validates :attach_report, absence: true, if: -> { audience == 'report' }
@@ -160,12 +161,21 @@ module Effective
       @rows_count ||= report.collection().count if report
     end
 
-    def notify!(limit: nil)
+    def notify!
+      case audience
+        when 'report' then notify_report_audience!
+        when 'emails' then notify_emails_audience!
+        else raise('unsupported audience')
+      end
+
+      true
+    end
+
+    def notify_report_audience!(limit: nil)
       notified = 0
 
       report.collection().find_each do |resource|
         next unless notifiable?(resource)
-
         print('.')
 
         notify_resource!(resource)
@@ -176,6 +186,19 @@ module Effective
       end
 
       update!(last_notified_at: Time.zone.now, last_notified_count: notified)
+    end
+
+    def notify_emails_audience!
+      notifiable = false
+
+      report.collection().find_each do |resource|
+        notifiable = true if notifiable?(resource)
+        break if notifiable
+      end
+
+      notify_emails! if notifiable
+
+      update!(last_notified_at: Time.zone.now, last_notified_count: (notifiable ? 1 : 0))
     end
 
     def notifiable?(resource, date: nil)
@@ -189,13 +212,16 @@ module Effective
       email.present?
     end
 
-    # Consider if we have to send or not
+    # Send to this resource
     def notify_resource!(resource, force: false)
       assign_attributes(current_resource: resource) # for logging
+      Effective::NotificationsMailer.notifiy_resource(self, resource).deliver_now
+    end
 
-      # Send it
-      Effective::NotificationsMailer.notification(self, resource).deliver_now
-      true
+    # Send to these emails
+    def notify_emails!(force: false)
+      assign_attributes(current_resource: nil) # for logging
+      Effective::NotificationsMailer.notification(self).deliver_now
     end
 
     # Enqueues a job that calls notify!
@@ -205,10 +231,11 @@ module Effective
       true
     end
 
-    def render_email(resource)
-      raise('expected a resource') unless resource.present?
+    def render_email(resource = nil)
+      raise('expected resource') if audience == 'report' && resource.blank?
+      raise('expected no resource') if audience == 'emails' && resource.present?
 
-      to = resource_email(resource) || resource_user(resource).try(:email)
+      to = audience_emails.presence || resource_email(resource) || resource_user(resource).try(:email)
       raise('expected a to email address') unless to.present?
 
       assigns = assigns_for(resource)
@@ -225,6 +252,8 @@ module Effective
     end
 
     def assigns_for(resource)
+      return {} unless resource.present?
+
       Array(report&.report_columns).inject({}) do |h, column|
         value = resource.send(column.name)
         h[column.name] = column.format(value); h

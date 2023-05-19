@@ -1,6 +1,22 @@
 module EffectiveMessagingTestBuilder
 
-  def build_notification(report: nil)
+  def build_immedate_emails_notification(report: nil)
+    report ||= build_report()
+
+    notification = Effective::Notification.new(
+      report: report,
+      audience: 'emails',
+      audience_emails: ['admin@codeandeffect.com'],
+      schedule_type: 'immediate',
+      immediate_days: 7,
+      immediate_times: 3,
+      from: 'noreply@example.com',
+      subject: "Hello {{ first_name }} {{ last_name }}",
+      body: "Body {{ first_name }} {{ last_name }}",
+    )
+  end
+
+  def build_immediate_report_notification(report: nil)
     report ||= build_report()
 
     notification = Effective::Notification.new(
