@@ -4,13 +4,13 @@
   = f.select :audience, Effective::Notification::AUDIENCES
 
   = f.show_if(:audience, 'report') do
-    %p Each result from the data source below will be sent a notification.
+    %p A notification will be sent to each email or user from the data source.
 
   = f.show_if(:audience, 'emails') do
     %p A single notification will be sent to the following email addresses:
 
     = f.select :audience_emails, f.object.audience_emails, multiple: true, tags: true, hint: 'Add one or more email address by pressing enter'
-    = f.check_box :attach_report, label: 'Yes, attach a .csv file with all the data to the email notifiation'
+    = f.check_box :attach_report, label: 'Yes, attach a .csv file with the report data'
 
   %h2 Data Source
   %p
@@ -18,12 +18,10 @@
     = link_to 'report', effective_reports.admin_reports_path, target: '_blank'
     to use as the data source.
 
-  %p.text-muted
-    %small A report with an email column is required when sending to each email from the data source.
-
   .row
     .col-md-6
-      = f.select :report_id, Effective::Report.sorted.emails.all, label: 'Report with email column',
+      = f.select :report_id, Effective::Report.sorted.emails.all, label: 'Report with email or user column',
+        hint: 'A report with an email or user column is required when sending to each email from the data source.',
         'data-load-ajax-url': effective_messaging.new_admin_notification_path,
         'data-load-ajax-div': '#effective-messaging-ajax'
 
@@ -33,10 +31,19 @@
   = f.select :schedule_type, Effective::Notification::SCHEDULE_TYPES
 
   = f.show_if(:schedule_type, 'immediate') do
-    %p Immediate
+    %p
+      %strong Send on the first day they appear in the data source
+
+    .d-flex
+      Send notification immediately and then every
+      .mx-3= f.number_field :immediate_days, label: false, min: 1, max: 365
+      day(s) thereafter, for
+      .mx-3= f.number_field :immediate_times, label: false, min: 1, max: 1000
+      total notifications.
 
   = f.show_if(:schedule_type, 'scheduled') do
-    %p Scheduled
+    %p
+      %strong Send at a specific recurring date
 
   -# .row
   -#   .col-md-6
