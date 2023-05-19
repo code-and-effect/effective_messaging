@@ -2,7 +2,7 @@ module Effective
   class NotificationsMailer < EffectiveMessaging.parent_mailer_class
     include EffectiveMailer
 
-    def notification(notification, opts = {})
+    def notify(notification, opts = {})
       raise('expected an Effective::Notification') unless notification.kind_of?(Effective::Notification)
 
       # Returns a Hash of params to pass to mail()
@@ -25,7 +25,7 @@ module Effective
     end
 
     # Does not use effective_email_templates mailer
-    def notifiy_resource(notification, resource, opts = {})
+    def notify_resource(notification, resource, opts = {})
       raise('expected an Effective::Notification') unless notification.kind_of?(Effective::Notification)
       raise('expected an acts_as_reportable resource') unless resource.class.try(:acts_as_reportable?)
 

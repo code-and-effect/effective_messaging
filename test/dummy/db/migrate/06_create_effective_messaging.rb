@@ -70,5 +70,20 @@ class CreateEffectiveMessaging < ActiveRecord::Migration[6.0]
       t.timestamps
     end
 
+    create_table :notification_logs do |t|
+      t.integer :notification_id
+      t.integer :report_id
+
+      t.integer :user_id
+      t.string :user_type
+
+      t.integer :resource_id
+      t.string :resource_type
+
+      t.string :email
+
+      t.timestamps
+    end
+
   end
 end

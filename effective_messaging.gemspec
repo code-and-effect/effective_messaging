@@ -25,8 +25,9 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency 'sqlite3'
   spec.add_development_dependency 'devise'
-  spec.add_development_dependency 'haml-rails'
+  spec.add_development_dependency 'haml'
   spec.add_development_dependency 'pry-byebug'
+  spec.add_development_dependency 'timecop'
   spec.add_development_dependency 'effective_test_bot'
   spec.add_development_dependency 'effective_developer' # Optional but suggested
 end

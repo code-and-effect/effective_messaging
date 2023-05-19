@@ -8,6 +8,14 @@ module EffectiveMessagingTestHelper
     sign_in(user); yield; logout(:user)
   end
 
+  def with_time_travel(date, &block)
+    begin
+      Timecop.travel(date); yield
+    ensure
+      Timecop.return
+    end
+  end
+
   # assert_email :new_user_sign_up
   # assert_email :new_user_sign_up, to: 'newuser@example.com'
   # assert_email from: 'admin@example.com'

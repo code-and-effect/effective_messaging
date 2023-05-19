@@ -95,6 +95,18 @@ ActiveRecord::Schema.define(version: 6) do
     t.datetime "updated_at"
   end
 
+  create_table "notification_logs", force: :cascade do |t|
+    t.integer "notification_id"
+    t.integer "report_id"
+    t.integer "user_id"
+    t.string "user_type"
+    t.integer "resource_id"
+    t.string "resource_type"
+    t.string "email"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
   create_table "notifications", force: :cascade do |t|
     t.integer "parent_id"
     t.string "parent_type"

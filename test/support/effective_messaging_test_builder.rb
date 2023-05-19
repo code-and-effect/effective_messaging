@@ -6,7 +6,7 @@ module EffectiveMessagingTestBuilder
     notification = Effective::Notification.new(
       report: report,
       audience: 'emails',
-      audience_emails: ['admin@codeandeffect.com'],
+      audience_emails: ['admin@codeandeffect.com', 'another@codeandeffect.com'],
       schedule_type: 'immediate',
       immediate_days: 7,
       immediate_times: 3,
