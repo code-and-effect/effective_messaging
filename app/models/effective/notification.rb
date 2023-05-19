@@ -157,6 +157,13 @@ module Effective
       @rows_count ||= report.collection().count if report
     end
 
+    # Enqueues a job that calls notify!
+    def create_notification_job!
+      raise('expected to be persisted') unless persisted?
+      NotificationJob.perform_later(id)
+      true
+    end
+
     def notify!
       case audience
         when 'report' then notify_report_audience!
@@ -172,7 +179,13 @@ module Effective
         next unless notifiable?(resource)
         print('.')
 
-        notify_resource!(resource)
+        # For logging
+        assign_attributes(current_resource: resource)
+
+        # Send the resource email
+        build_notification_log(resource: resource).save!
+        Effective::NotificationsMailer.notify_resource(self, resource).deliver_now
+
         notified += 1
 
         GC.start if (notified % 250) == 0
@@ -182,22 +195,22 @@ module Effective
     end
 
     def notify_emails_audience!
-      notifiable = false
+      notified = 0
 
-      report.collection().find_each do |resource|
-        notifiable = true if notifiable?(resource)
-        break if notifiable
+      if notifiable?
+        build_notification_log(resource: nil).save!
+        Effective::NotificationsMailer.notify(self).deliver_now
+
+        notified += 1
       end
 
-      notify_emails! if notifiable
-
-      update!(last_notified_at: Time.zone.now, last_notified_count: (notifiable ? 1 : 0))
+      update!(last_notified_at: Time.zone.now, last_notified_count: notified)
     end
 
-    def notifiable?(resource)
+    def notifiable?(resource = nil)
       # Look up the logs by email
-      email = resource_email(resource) || resource_user(resource).try(:email)
-      raise("expected an email for #{report} #{report&.id} and #{resource} #{resource.id}") unless email.present?
+      email = audience_emails_to_s || resource_email(resource) || resource_user(resource).try(:email)
+      raise("expected an email for #{report} #{report&.id} and #{resource} #{resource&.id}") unless email.present?
 
       case schedule_type
       when 'immediate'
@@ -217,27 +230,6 @@ module Effective
       else
         raise('unsupported schedule type')
       end
-    end
-
-    # Send to this resource
-    def notify_resource!(resource, force: false)
-      assign_attributes(current_resource: resource)
-      build_notification_log(resource: resource).save!
-      Effective::NotificationsMailer.notify_resource(self, resource).deliver_now
-    end
-
-    # Send to these emails if any resource changed
-    def notify_emails!(force: false)
-      assign_attributes(current_resource: nil)
-      build_notification_log(resource: nil).save!
-      Effective::NotificationsMailer.notify(self).deliver_now
-    end
-
-    # Enqueues a job that calls notify!
-    def create_notification_job!
-      save!
-      NotificationJob.perform_later(id)
-      true
     end
 
     def render_email(resource = nil)

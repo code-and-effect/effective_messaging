@@ -12,6 +12,7 @@ module Effective
 
     effective_resource do
       email        :string
+
       timestamps
     end
 
