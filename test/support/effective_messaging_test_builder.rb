@@ -5,7 +5,10 @@ module EffectiveMessagingTestBuilder
 
     notification = Effective::Notification.new(
       report: report,
-      send_at: Time.zone.now,
+      audience: 'report',
+      schedule_type: 'immediate',
+      immediate_days: 7,
+      immediate_times: 3,
       from: 'noreply@example.com',
       subject: "Hello {{ first_name }} {{ last_name }}",
       body: "Body {{ first_name }} {{ last_name }}",

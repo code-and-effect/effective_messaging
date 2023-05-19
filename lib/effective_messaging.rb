@@ -20,4 +20,8 @@ module EffectiveMessaging
     mailer&.constantize || Effective::MessagingMailer
   end
 
+  def self.Notification
+    Effective::Notification
+  end
+
 end

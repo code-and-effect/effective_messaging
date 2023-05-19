@@ -101,15 +101,19 @@ ActiveRecord::Schema.define(version: 6) do
     t.integer "user_id"
     t.string "user_type"
     t.integer "report_id"
-    t.datetime "send_at"
+    t.string "audience"
+    t.text "audience_emails"
+    t.boolean "attach_report", default: false
+    t.string "schedule_type"
+    t.integer "immediate_days"
+    t.integer "immediate_times"
     t.string "subject"
     t.text "body"
     t.string "from"
     t.string "cc"
     t.string "bcc"
-    t.datetime "started_at"
-    t.datetime "completed_at"
-    t.integer "notifications_sent"
+    t.datetime "last_notified_at"
+    t.integer "last_notified_count"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end

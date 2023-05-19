@@ -6,7 +6,7 @@ module Effective
 
     def notification(notification, resource, opts = {})
       raise('expected an Effective::Notification') unless notification.kind_of?(Effective::Notification)
-      raise('expected a resource') unless resource.present?
+      raise('expected an acts_as_reportable resource') unless resource.class.try(:acts_as_reportable?)
 
       # Returns a Hash of params to pass to mail()
       # Includes a :to, :from, etc

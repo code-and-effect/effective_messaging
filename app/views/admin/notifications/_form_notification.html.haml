@@ -20,7 +20,7 @@
 
   .row
     .col-md-6
-      = f.select :report_id, Effective::Report.sorted.emails.all, label: 'Report with email or user column',
+      = f.select :report_id, Effective::Report.sorted.emails.all,
         hint: 'A report with an email or user column is required when sending to each email from the data source.',
         'data-load-ajax-url': effective_messaging.new_admin_notification_path,
         'data-load-ajax-div': '#effective-messaging-ajax'
@@ -43,7 +43,7 @@
 
   = f.show_if(:schedule_type, 'scheduled') do
     %p
-      %strong Send at a specific recurring date
+      %strong Send on a scheduled recurring date
 
   -# .row
   -#   .col-md-6

@@ -70,10 +70,9 @@ module Effective
       cc                :string
       bcc               :string
 
-      # Tracking background jobs email send out
-      started_at         :datetime
-      completed_at       :datetime
-      notifications_sent :integer
+      # Background tracking
+      last_notified_at      :datetime
+      last_notified_count   :integer
 
       timestamps
     end
@@ -84,22 +83,11 @@ module Effective
     scope :sorted, -> { order(:id) }
     scope :deep, -> { includes(report: :report_columns) }
 
-    scope :upcoming, -> { all }
-    scope :started, -> { where.not(started_at: nil) }
-    scope :completed, -> { where.not(completed_at: nil) }
-
-    # Called by the notifier rake task
-    scope :notifiable, -> { where(started_at: nil) }
-
     # before_validation(if: -> { audience_emails.blank? }) do
     #   self.audience ||= 'report'
     #   self.schedule_type ||= 'immediate'
     #   self.immediate_days ||= 7
     #   self.immediate_times ||= 3
-    # end
-
-    # before_validation(if: -> { send_at_changed? }) do
-    #   assign_attributes(started_at: nil, completed_at: nil, notifications_sent: nil)
     # end
 
     validates :audience, presence: true, inclusion: { in: AUDIENCES.map(&:last) }
@@ -121,7 +109,7 @@ module Effective
     validates :body, presence: true, liquid: true
 
     validate(if: -> { report.present? }) do
-      errors.add(:report, 'must include an email or user column') unless report.email_report_column.present?
+      errors.add(:report, 'must include an email or user column') unless report.email_report_column || report.user_report_column
     end
 
     validate(if: -> { report.present? && subject.present? }) do
@@ -137,7 +125,7 @@ module Effective
     end
 
     def to_s
-      subject.presence || 'notification'
+      subject.presence || model_name.human
     end
 
     def immediate?
@@ -172,54 +160,58 @@ module Effective
       @rows_count ||= report.collection().count if report
     end
 
-    def in_progress?
-      started_at.present? && completed_at.blank?
-    end
-
-    def notifiable?
-      started_at.blank? && completed_at.blank?
-    end
-
-    def notify_now?
-      false # TODO
-      #notifiable? && Time.zone.now >= send_at
-    end
-
-    def notify!(force: false, limit: nil)
-      return false unless (notify_now? || force)
-
-      update!(started_at: Time.zone.now, completed_at: nil, notifications_sent: nil)
-
-      index = 0
+    def notify!(limit: nil)
+      notified = 0
 
       report.collection().find_each do |resource|
+        next unless notifiable?(resource)
+
         print('.')
 
-        assign_attributes(current_resource: resource)
-        Effective::NotificationsMailer.notification(self, resource).deliver_now
+        notify_resource!(resource)
+        notified += 1
 
-        index += 1
-        break if limit && index >= limit
-
-        GC.start if (index % 250) == 0
+        break if limit && notified >= limit
+        GC.start if (notified % 250) == 0
       end
 
-      update!(current_resource: nil, completed_at: Time.zone.now, notifications_sent: index)
+      update!(last_notified_at: Time.zone.now, last_notified_count: notified)
     end
 
-    # The 'Send Now' action on admin. Enqueues a job that calls notify!(force: true)
-    def create_notification_job!
-      update!(started_at: Time.zone.now, completed_at: nil, notifications_sent: nil)
+    def notifiable?(resource, date: nil)
+      date = (date || Time.zone.now).beginning_of_day
 
-      NotificationJob.perform_later(id, true) # force = true
+      # Look up the user and email
+      user = resource_user(resource)
+      email = resource_email(resource) || user.try(:email)
+      raise("expected an email for #{report} #{report&.id} and #{resource} #{resource.id}") unless email.present?
+
+      email.present?
+    end
+
+    # Consider if we have to send or not
+    def notify_resource!(resource, force: false)
+      assign_attributes(current_resource: resource) # for logging
+
+      # Send it
+      Effective::NotificationsMailer.notification(self, resource).deliver_now
+      true
+    end
+
+    # Enqueues a job that calls notify!
+    def create_notification_job!
+      save!
+      NotificationJob.perform_later(id)
       true
     end
 
     def render_email(resource)
       raise('expected a resource') unless resource.present?
 
+      to = resource_email(resource) || resource_user(resource).try(:email)
+      raise('expected a to email address') unless to.present?
+
       assigns = assigns_for(resource)
-      to = assigns.fetch(report.email_report_column.name) || raise('expected an email assigns')
 
       {
         to: to,
@@ -247,6 +239,19 @@ module Effective
           [node.name, *node.lookups].join('.')
         end.visit
       end.flatten.uniq.compact
+    end
+
+    def resource_user(resource)
+      column = report&.user_report_column
+
+      user = resource.public_send(column.name) if column.present?
+      user ||= resource if resource.respond_to?(:email)
+      user
+    end
+
+    def resource_email(resource)
+      column = report&.email_report_column
+      resource.public_send(column.name) if column.present?
     end
 
   end

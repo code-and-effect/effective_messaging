@@ -10,7 +10,8 @@ class NotificationTest < ActiveSupport::TestCase
 
     assert_email(count: 5) { notification.notify! }
 
-    assert_equal 5, notification.notifications_sent
+    assert_equal 5, notification.last_notified_count
+    assert_equal Time.zone.now.beginning_of_day, notification.last_notified_at.beginning_of_day
   end
 
   test 'notification renders email' do
@@ -26,27 +27,6 @@ class NotificationTest < ActiveSupport::TestCase
 
     assert rendered[:body].to_s.include?(user.first_name)
     assert rendered[:body].to_s.include?(user.last_name)
-  end
-
-  test 'notifiable?' do
-    notification = build_notification()
-    assert notification.notifiable?
-    assert notification.notify_now?
-
-    notification.send_at = Time.zone.now + 1.minute
-    assert notification.notifiable?
-    refute notification.notify_now?
-
-    notification.send_at = Time.zone.now - 1.minute
-    assert notification.notifiable?
-    assert notification.notify_now?
-
-    notification.started_at = Time.zone.now
-    refute notification.notifiable?
-
-    notification.started_at = nil
-    notification.completed_at = Time.zone.now
-    refute notification.notifiable?
   end
 
 end

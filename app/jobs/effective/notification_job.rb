@@ -1,9 +1,8 @@
 module Effective
   class NotificationJob < ApplicationJob
 
-    def perform(id, force)
-      notification = Notification.find(id)
-      notification.notify!(force: force)
+    def perform(id)
+      Notification.find(id).notify!
     end
 
   end
