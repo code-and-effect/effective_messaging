@@ -28,22 +28,25 @@
   %h2 Schedule
   %p Please select how and when the notifications should be sent
 
-  = f.select :schedule_type, Effective::Notification::SCHEDULE_TYPES
+  = f.check_box :enabled, label: "Yes, this notification is enabled and notification emails should be sent"
 
-  = f.show_if(:schedule_type, 'immediate') do
-    %p
-      %strong Send on the first day they appear in the data source
+  = f.show_if(:enabled, true) do
+    = f.select :schedule_type, Effective::Notification::SCHEDULE_TYPES
 
-    .d-flex
-      Send notification immediately and then every
-      .mx-3= f.number_field :immediate_days, label: false, min: 1, max: 365
-      day(s) thereafter, for
-      .mx-3= f.number_field :immediate_times, label: false, min: 1, max: 1000
-      total notifications.
+    = f.show_if(:schedule_type, 'immediate') do
+      %p
+        %strong Send on the first day they appear in the data source
 
-  = f.show_if(:schedule_type, 'scheduled') do
-    %p
-      %strong Send on a scheduled recurring date
+      .d-flex
+        Send notification immediately and then every
+        .mx-3= f.number_field :immediate_days, label: false, min: 0, max: 365
+        day(s) thereafter, for
+        .mx-3= f.number_field :immediate_times, label: false, min: 1, max: 1000
+        total notification(s).
+
+    = f.show_if(:schedule_type, 'scheduled') do
+      %p
+        %strong Send on a scheduled recurring date
 
   -# .row
   -#   .col-md-6
