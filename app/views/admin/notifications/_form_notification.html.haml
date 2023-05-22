@@ -53,20 +53,8 @@
       = f.show_if(:scheduled_method, 'dates') do
         = f.select :scheduled_dates, f.object.scheduled_dates, multiple: true, tags: true, hint: 'Add one or more dates by pressing enter. Please input in the format YYYY-MM-DD'
 
-  -# .row
-  -#   .col-md-6
-  -#     - minDate = [f.object.created_at, Time.zone.now].compact.min
-
-  -#     = f.datetime_field :send_at, label: 'Send the notification at', input_js: { minDate: minDate.strftime('%F %H:%M:%S') },
-  -#       hint: 'A future date. Changing this value will reset the started_at and completed_at dates so this notification can be sent again.'
-  -#   .col-md-6
-  -#     - if f.object.completed_at.present?
-  -#       = f.static_field :completed_at
-  -#     - elsif f.object.started_at.present?
-  -#       = f.static_field :started_at
-
   %h2 Notification
-  %p The following notification will be sent to each row in the data source
+  %p The following email notification will be sent
 
   - froms = Array(EffectiveMessaging.froms)
 

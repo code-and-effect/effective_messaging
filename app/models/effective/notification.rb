@@ -87,22 +87,37 @@ module Effective
 
     validates :audience, presence: true, inclusion: { in: AUDIENCES.map(&:last) }
     validates :schedule_type, presence: true, inclusion: { in: SCHEDULE_TYPES.map(&:last) }
-    validates :report, presence: true, if: -> { audience == 'report' || attach_report? }
 
     validates :audience_emails, presence: true, if: -> { audience == 'emails' }
     validates :attach_report, absence: true, if: -> { audience == 'report' }
 
+    # Immediate
     with_options(if: -> { immediate? }) do
       validates :immediate_days, presence: true, numericality: { greater_than_or_equal_to: 0 }
       validates :immediate_times, presence: true, numericality: { greater_than_or_equal_to: 1 }
     end
 
-    with_options(if: -> { scheduled? }) do
+    # Scheduled
+    validates :schedule_method, presence: true, if: -> { scheduled? }
+
+    with_options(if: -> { scheduled_method == 'dates' }) do
+      validates :scheduled_dates, presence: true
     end
 
+    validate(if: -> { scheduled_dates.present? }) do
+      scheduled_dates.each do |str|
+        errors.add(:scheduled_dates, "expected a string") unless str.kind_of?(String)
+        errors.add(:scheduled_dates, "#{str} is an invalid date") unless (Time.zone.parse(str) rescue false)
+      end
+    end
+
+    # Email
     validates :from, presence: true, email: true
     validates :subject, presence: true, liquid: true
     validates :body, presence: true, liquid: true
+
+    # Report
+    validates :report, presence: true, if: -> { audience == 'report' || attach_report? }
 
     validate(if: -> { report.present? }) do
       errors.add(:report, 'must include an email or user column') unless report.email_report_column || report.user_report_column
@@ -127,10 +142,10 @@ module Effective
     def schedule
       if immediate?
         "Send immediately then every #{immediate_days} days for #{immediate_times} times total"
-      elsif scheduled?
-        'todo'
+      elsif scheduled? && scheduled_method == 'dates'
+        "Send on #{scheduled_dates.length} scheduled days: #{scheduled_dates.sort.to_sentence}"
       else
-        nil
+        'todo'
       end
     end
 
@@ -221,6 +236,8 @@ module Effective
     # end
 
     def notifiable?(resource)
+      raise('expected an acts_as_reportable resource') unless resource.class.try(:acts_as_reportable?)
+
       # Look up the logs by email
       email = resource_email(resource) || resource_user(resource).try(:email)
       raise("expected an email for #{report} #{report&.id} and #{resource} #{resource&.id}") unless email.present?
