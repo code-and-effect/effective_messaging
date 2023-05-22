@@ -73,7 +73,7 @@ module Effective
     end
 
     serialize :audience_emails, Array
-    serialize :schedule_dates, Array
+    serialize :scheduled_dates, Array
 
     scope :sorted, -> { order(:id) }
     scope :deep, -> { includes(report: :report_columns) }
@@ -146,8 +146,8 @@ module Effective
       Array(self[:audience_emails]) - [nil, '']
     end
 
-    def schedule_dates
-      Array(self[:schedule_dates]) - [nil, '']
+    def scheduled_dates
+      Array(self[:scheduled_dates]) - [nil, '']
     end
 
     def template_subject
