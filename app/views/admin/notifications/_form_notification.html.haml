@@ -20,7 +20,7 @@
 
   .row
     .col-md-6
-      = f.select :report_id, Effective::Report.sorted.emails.all,
+      = f.select :report_id, Effective::Report.sorted.notifiable.all,
         hint: 'A report with an email or user column is required when sending to each email from the data source.',
         'data-load-ajax-url': effective_messaging.new_admin_notification_path,
         'data-load-ajax-div': '#effective-messaging-ajax'
@@ -68,6 +68,7 @@
   - else
     = f.email_field :from
 
+  = f.email_field :bcc
   = f.text_field :subject
   = f.text_area :body
 
@@ -82,8 +83,8 @@
   = f.submit do
     = f.save 'Save'
 
-    - if f.object.persisted?
-      = f.save 'Send Now', class: 'btn btn-warning', 'data-confirm': "Really send #{pluralize(notification.rows_count, 'notification')} now?"
+    - if EffectiveResources.authorized?(self, :send_now, f.object)
+      = f.save 'Send Now', class: 'btn btn-warning', 'data-confirm': "Really send now?"
 
     = f.save 'Add New', class: 'btn btn-secondary'
     = f.save 'Continue', class: 'btn btn-secondary'

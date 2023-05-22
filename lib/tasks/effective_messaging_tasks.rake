@@ -8,7 +8,7 @@ namespace :effective_messaging do
     blank_tenant = defined?(Tenant) && Tenant.current.blank?
 
     if table && !blank_tenant
-      notifications = Effective::Notification.all.deep
+      notifications = Effective::Notification.all.deep.enabled
 
       notifications.find_each do |notification|
         begin

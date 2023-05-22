@@ -3,5 +3,9 @@
     = render 'admin/notifications/form_notification', notification: notification
 
   - if notification.persisted? && notification.respond_to?(:logs_datatable)
+    = tab 'Notification Logs' do
+      - datatable = Admin::EffectiveNotificationLogsDatatable.new(notification: notification)
+      = render_inline_datatable(datatable)
+
     = tab 'Logs' do
-      = render_datatable(notification.logs_datatable)
+      = render_inline_datatable(notification.logs_datatable)

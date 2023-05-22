@@ -32,23 +32,19 @@ module Effective
       ['When present in the data source on the following dates', 'scheduled']
     ]
 
-    # SCHEDULE_PERIODS = ['Send once', 'Send daily', 'Send weekly', 'Send monthly', 'Send quarterly', 'Send yearly', 'Send now']
-
-    # SCHEDULE_METHODS = [
-    #   ['beginning_of_month', 'First day of the month'],
-    #   ['end_of_month', 'Last day of the month'],
-    #   ['beginning_of_quarter', 'First day of the quarter'],
-    #   ['end_of_quarter', 'Last day of the quarter'],
-    #   ['beginning_of_year', 'First day of the year'],
-    #   ['end_of_year', 'Last day of the year'],
-    # ]
+    # TODO: ['Send once', 'Send daily', 'Send weekly', 'Send monthly', 'Send quarterly', 'Send yearly', 'Send now']
+    SCHEDULED_METHODS = [
+      ['The following dates...', 'dates'],
+    ]
 
     CONTENT_TYPES = ['text/plain', 'text/html']
 
     effective_resource do
       audience           :string
       audience_emails    :text
-      attach_report     :boolean
+
+      enabled            :boolean
+      attach_report      :boolean
 
       schedule_type      :string
 
@@ -57,14 +53,9 @@ module Effective
       immediate_days     :integer
       immediate_times    :integer
 
-      # schedule_period    :string
-      # schedule_method    :string  # Send monthly or Send yearly
-      # schedule_times     :integer
-
-      # schedule_dates     :text    # Send once. Serialized array of dates.
-      # schedule_wday      :integer # Send weekly
-      # schedule_day       :integer # Send monthly or Send yearly
-      # schedule_month     :integer # Send yearly
+      # When the schedule id scheduled. We send the email to everyone in the audience on the given dates
+      scheduled_method    :string
+      scheduled_dates     :text
 
       # Email
       subject           :string
@@ -82,10 +73,13 @@ module Effective
     end
 
     serialize :audience_emails, Array
-    #serialize :schedule_dates, Array
+    serialize :schedule_dates, Array
 
     scope :sorted, -> { order(:id) }
     scope :deep, -> { includes(report: :report_columns) }
+
+    scope :enabled, -> { where(enabled: true) }
+    scope :disabled, -> { where(enabled: false) }
 
     before_validation do
       self.from ||= EffectiveMessaging.froms.first
@@ -133,7 +127,7 @@ module Effective
     def schedule
       if immediate?
         "Send immediately then every #{immediate_days} days for #{immediate_times} times total"
-      elsif schedule?
+      elsif scheduled?
         'todo'
       else
         nil
@@ -172,22 +166,25 @@ module Effective
       @rows_count ||= report.collection().count if report
     end
 
-    # Enqueues a job that calls notify!
-    def create_notification_job!
+    # Button on the Admin interface. Enqueues the job to send right away.
+    def send_now!
       raise('expected to be persisted') unless persisted?
       NotificationJob.perform_later(id)
       true
     end
 
+    # The main function
     def notify!
-      case audience
-        when 'report' then notify_report_audience!
-        when 'emails' then notify_emails_audience!
-        else raise('unsupported audience')
+      if schedule_type == 'immediate'
+        notify_by_resources!
+      else
+        # if schedule_type == 'scheduled' && audience == 'emails' we send only 1
+        raise('todo')
       end
     end
 
-    def notify_report_audience!
+    # Operates on every resource in the data source. Sends one email for each row
+    def notify_by_resources!
       notified = 0
 
       report.collection().find_each do |resource|
@@ -209,22 +206,23 @@ module Effective
       update!(last_notified_at: Time.zone.now, last_notified_count: notified)
     end
 
-    def notify_emails_audience!
-      notified = 0
+    # Must be sending to just emails. On a schedule
+    # def notify_scheduled!
+    #   notified = 0
 
-      if notifiable?
-        build_notification_log(resource: nil).save!
-        Effective::NotificationsMailer.notify(self).deliver_now
+    #   if notifiable?
+    #     build_notification_log(resource: nil).save!
+    #     Effective::NotificationsMailer.notify(self).deliver_now
 
-        notified += 1
-      end
+    #     notified += 1
+    #   end
 
-      update!(last_notified_at: Time.zone.now, last_notified_count: notified)
-    end
+    #   update!(last_notified_at: Time.zone.now, last_notified_count: notified)
+    # end
 
-    def notifiable?(resource = nil)
+    def notifiable?(resource)
       # Look up the logs by email
-      email = audience_emails_to_s || resource_email(resource) || resource_user(resource).try(:email)
+      email = resource_email(resource) || resource_user(resource).try(:email)
       raise("expected an email for #{report} #{report&.id} and #{resource} #{resource&.id}") unless email.present?
 
       case schedule_type
@@ -247,11 +245,15 @@ module Effective
       end
     end
 
-    def render_email(resource = nil)
-      raise('expected resource') if audience == 'report' && resource.blank?
-      raise('expected no resource') if audience == 'emails' && resource.present?
+    def render_email(resource)
+      raise('expected resource') unless resource.present?
 
-      to = audience_emails.presence || resource_email(resource) || resource_user(resource).try(:email)
+      to = if audience == 'emails'
+        audience_emails.presence
+      elsif audience == 'report'
+        resource_email(resource) || resource_user(resource).try(:email)
+      end
+
       raise('expected a to email address') unless to.present?
 
       assigns = assigns_for(resource)
@@ -278,7 +280,7 @@ module Effective
 
     def build_notification_log(resource: nil)
       user = resource_user(resource)
-      email = audience_emails_to_s || resource_email(resource) || user.try(:email)
+      email = resource_email(resource) || user.try(:email)
 
       notification_logs.build(email: email, report: report, resource: resource, user: user)
     end

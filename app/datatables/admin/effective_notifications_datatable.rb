@@ -2,6 +2,8 @@ module Admin
   class EffectiveNotificationsDatatable < Effective::Datatable
     filters do
       scope :all
+      scope :enabled
+      scope :disabled
     end
 
     datatable do
@@ -11,15 +13,26 @@ module Admin
       col :created_at, visible: false
       col :id, visible: false
 
-      col :audience
-      col :audience_emails, visible: false
+      col :audience, visible: false
+
+      col :audience_emails, label: 'Send to' do |notification|
+        if notification.audience == 'emails'
+          notification.audience_emails.join(', ')
+        else
+          'report user'
+        end
+      end
+
+      col :enabled
 
       col :schedule
       col :schedule_type, visible: false
       col :immediate_days, visible: false
       col :immediate_times, visible: false
+      col :scheduled_method, visible: false
+      col :scheduled_dates, visible: false
 
-      col :report, search: Effective::Report.emails.sorted
+      col :report, search: Effective::Report.notifiable.sorted
 
       col :subject
       col :body, visible: false
@@ -30,7 +43,6 @@ module Admin
 
       col :last_notified_at
       col :last_notified_count
-
 
       actions_col
     end

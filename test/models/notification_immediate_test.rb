@@ -52,20 +52,20 @@ class NotificatioImmediateTest < ActiveSupport::TestCase
     now = Time.zone.now.beginning_of_day
 
     # Send the first time
-    with_time_travel(now) { assert_email(count: 1) { notification.notify! } }
+    with_time_travel(now) { assert_email(count: 5) { notification.notify! } }
 
     # Nothing to do
     with_time_travel(now + 1.days) { assert_email(count: 0) { notification.notify! } }
     with_time_travel(now + 6.days) { assert_email(count: 0) { notification.notify! } }
 
     # Send the second time
-    with_time_travel(now + 7.days) { assert_email(count: 1) { notification.notify! } }
+    with_time_travel(now + 7.days) { assert_email(count: 5) { notification.notify! } }
 
     # Nothing to do
     with_time_travel(now + 13.days) { assert_email(count: 0) { notification.notify! } }
 
     # Send the third time
-    with_time_travel(now + 14.days) { assert_email(count: 1) { notification.notify! } }
+    with_time_travel(now + 14.days) { assert_email(count: 5) { notification.notify! } }
 
     # Nothing to do
     with_time_travel(now + 20.days) { assert_email(count: 0) { notification.notify! } }
@@ -90,5 +90,22 @@ class NotificatioImmediateTest < ActiveSupport::TestCase
     with_time_travel(now + 1.days) { assert_email(count: 0) { notification.notify! } }
     with_time_travel(now + 2.days) { assert_email(count: 0) { notification.notify! } }
   end
+
+  # TODO LATER THIS WILL BE FOR SCHEDULED IMMEDIATE EMAILS WITH AUDIENCE EMAILS
+  # test 'send immediately for 1 time total' do
+  #   5.times { create_user!() }
+
+  #   notification = build_immediate_report_notification()
+  #   notification.update!(immediate_days: 0, immediate_times: 1)
+
+  #   now = Time.zone.now.beginning_of_day
+
+  #   # Send the first time
+  #   with_time_travel(now) { assert_email(count: 5) { notification.notify! } }
+
+  #   # Nothing to do
+  #   with_time_travel(now + 1.days) { assert_email(count: 0) { notification.notify! } }
+  #   with_time_travel(now + 2.days) { assert_email(count: 0) { notification.notify! } }
+  # end
 
 end

@@ -17,11 +17,9 @@ module Effective
     end
 
     scope :sorted, -> { order(:id) }
-    scope :deep, -> { includes(:notification, :report) }
+    scope :deep, -> { includes(:notification, :report, :resource, :user) }
 
     validates :email, presence: true, email: true
-    validates :resource, presence: true, if: -> { new_record? && notification&.audience == 'report' }
-    validates :resource, absence: true, if: -> { new_record? && notification&.audience == 'emails' }
 
     def to_s
       model_name.human
