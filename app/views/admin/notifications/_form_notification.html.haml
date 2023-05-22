@@ -82,7 +82,7 @@
   = f.submit do
     = f.save 'Save'
 
-    - if f.object.persisted? && !f.object.in_progress?
+    - if f.object.persisted?
       = f.save 'Send Now', class: 'btn btn-warning', 'data-confirm': "Really send #{pluralize(notification.rows_count, 'notification')} now?"
 
     = f.save 'Add New', class: 'btn btn-secondary'

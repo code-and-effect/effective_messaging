@@ -2,8 +2,6 @@ module Admin
   class EffectiveNotificationsDatatable < Effective::Datatable
     filters do
       scope :all
-      scope :notifiable, label: 'Upcoming'
-      scope :completed, label: 'Past'
     end
 
     datatable do
@@ -13,7 +11,14 @@ module Admin
       col :created_at, visible: false
       col :id, visible: false
 
-      col :send_at
+      col :audience
+      col :audience_emails, visible: false
+
+      col :schedule
+      col :schedule_type, visible: false
+      col :immediate_days, visible: false
+      col :immediate_times, visible: false
+
       col :report, search: Effective::Report.emails.sorted
 
       col :subject
@@ -23,9 +28,9 @@ module Admin
       col :cc, visible: false
       col :bcc, visible: false
 
-      col :started_at, visible: false
-      col :completed_at
-      col :notifications_sent, visible: false
+      col :last_notified_at
+      col :last_notified_count
+
 
       actions_col
     end

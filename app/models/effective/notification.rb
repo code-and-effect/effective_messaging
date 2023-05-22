@@ -18,6 +18,7 @@ module Effective
     # Effective namespace
     belongs_to :report, class_name: 'Effective::Report', optional: true
 
+    # Tracks the send outs
     has_many :notification_logs, dependent: :delete_all
     accepts_nested_attributes_for :notification_logs
 
@@ -86,6 +87,10 @@ module Effective
     scope :sorted, -> { order(:id) }
     scope :deep, -> { includes(report: :report_columns) }
 
+    before_validation do
+      self.from ||= EffectiveMessaging.froms.first
+    end
+
     validates :audience, presence: true, inclusion: { in: AUDIENCES.map(&:last) }
     validates :schedule_type, presence: true, inclusion: { in: SCHEDULE_TYPES.map(&:last) }
     validates :report, presence: true, if: -> { audience == 'report' || attach_report? }
@@ -123,6 +128,16 @@ module Effective
 
     def to_s
       subject.presence || model_name.human
+    end
+
+    def schedule
+      if immediate?
+        "Send immediately then every #{immediate_days} days for #{immediate_times} times total"
+      elsif schedule?
+        'todo'
+      else
+        nil
+      end
     end
 
     def immediate?

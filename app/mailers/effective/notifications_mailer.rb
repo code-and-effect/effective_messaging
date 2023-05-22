@@ -13,9 +13,7 @@ module Effective
       headers = headers_for(notification, opts)
 
       # Use postmark broadcast-stream
-      if defined?(Postmark)
-        headers.merge!(message_stream: 'broadcast-stream')
-      end
+      headers.merge!(message_stream: 'broadcast-stream') if defined?(Postmark)
 
       # Calls effective_resources subject proc, so we can prepend [LETTERS]
       subject = subject_for(__method__, rendered.fetch(:subject), notification, opts)
@@ -37,9 +35,7 @@ module Effective
       headers = headers_for(notification, opts)
 
       # Use postmark broadcast-stream
-      if defined?(Postmark)
-        headers.merge!(message_stream: 'broadcast-stream')
-      end
+      headers.merge!(message_stream: 'broadcast-stream') if defined?(Postmark)
 
       # Calls effective_resources subject proc, so we can prepend [LETTERS]
       subject = subject_for(__method__, rendered.fetch(:subject), resource, opts)
