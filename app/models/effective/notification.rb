@@ -23,13 +23,13 @@ module Effective
     accepts_nested_attributes_for :notification_logs
 
     AUDIENCES = [
-      ['Send to each email or user from the data source', 'report'],
-      ['Send to the following addresses', 'emails']
+      ['Send to user or email from the report', 'report'],
+      ['Send to specific addresses', 'emails']
     ]
 
     SCHEDULE_TYPES = [
-      ['On the first day they appear in the data source and every x days thereafter', 'immediate'],
-      ['When present in the data source on the following dates', 'scheduled']
+      ['On the first day they appear in the report and every x days thereafter', 'immediate'],
+      ['When present in the report on the following dates', 'scheduled']
     ]
 
     # TODO: ['Send once', 'Send daily', 'Send weekly', 'Send monthly', 'Send quarterly', 'Send yearly', 'Send now']
@@ -85,11 +85,15 @@ module Effective
       self.from ||= EffectiveMessaging.froms.first
     end
 
+    # Emails or Report
     validates :audience, presence: true, inclusion: { in: AUDIENCES.map(&:last) }
+    validates :audience_emails, presence: true, if: -> { audience == 'emails' }
+
+    # Scheduled or Immediate
     validates :schedule_type, presence: true, inclusion: { in: SCHEDULE_TYPES.map(&:last) }
 
-    validates :audience_emails, presence: true, if: -> { audience == 'emails' }
-    validates :attach_report, absence: true, if: -> { audience == 'report' }
+    # Attach Report - Only for scheduled emails
+    validates :attach_report, absence: true, unless: -> { scheduled_email? }
 
     # Immediate
     with_options(if: -> { immediate? }) do
@@ -98,7 +102,7 @@ module Effective
     end
 
     # Scheduled
-    validates :schedule_method, presence: true, if: -> { scheduled? }
+    validates :scheduled_method, presence: true, if: -> { scheduled? }
 
     with_options(if: -> { scheduled_method == 'dates' }) do
       validates :scheduled_dates, presence: true
@@ -155,6 +159,20 @@ module Effective
 
     def scheduled?
       schedule_type == 'scheduled'
+    end
+
+    def audience_emails?
+      audience == 'emails'
+    end
+
+    def audience_report?
+      audience == 'report'
+    end
+
+    # Only scheduled emails can have attached reports.
+    # Only scheduled emails can do Send Now
+    def scheduled_email?
+      scheduled? && audience_emails?
     end
 
     def audience_emails
