@@ -35,6 +35,8 @@ module EffectiveMessagingTestHelper
       end
     end
 
+    return if count == 0
+
     if (action || to || from || subject || body).nil?
       assert ActionMailer::Base.deliveries.present?, message || "(assert_email) Expected email to have been delivered"
       return retval

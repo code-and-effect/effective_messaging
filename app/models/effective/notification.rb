@@ -252,7 +252,7 @@ module Effective
       if schedule_type == 'immediate'
         notifiable_immediate?(resource: resource)
       elsif schedule_type == 'scheduled'
-        notifiable_scheduled?(date: Time.zone.now)
+        notifiable_scheduled?(date: nil)
       else
         raise("unsupported schedule_type")
       end
@@ -282,11 +282,11 @@ module Effective
     def notifiable_scheduled?(date: nil)
       raise('expected a scheduled? notification') unless scheduled?
 
-      date ||= Time.zone.now
+      date ||= Time.zone.now.beginning_of_day
 
       case scheduled_method
       when 'days'
-        scheduled_dates.find(date.strftime('%F')).present?
+        scheduled_dates.find { |day| day == date.strftime('%F') }.present?
       else
         raise('unsupported scheduled_method')
       end
