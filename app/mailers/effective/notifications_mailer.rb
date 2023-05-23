@@ -2,28 +2,28 @@ module Effective
   class NotificationsMailer < EffectiveMessaging.parent_mailer_class
     include EffectiveMailer
 
-    # def notify(notification, opts = {})
-    #   raise('expected an Effective::Notification') unless notification.kind_of?(Effective::Notification)
+    def notify(notification, opts = {})
+      raise('expected an Effective::Notification') unless notification.kind_of?(Effective::Notification)
 
-    #   # Returns a Hash of params to pass to mail()
-    #   # Includes a :to, :from, etc
-    #   rendered = notification.render_email()
+      # Returns a Hash of params to pass to mail()
+      # Includes a :to, :from, etc
+      rendered = notification.render_email
 
-    #   # Attach report
-    #   attach_report!(notification)
+      # Attach report
+      attach_report!(notification)
 
-    #   # Works with effective_logging to associate this email with the notification
-    #   headers = headers_for(notification, opts)
+      # Works with effective_logging to associate this email with the notification
+      headers = headers_for(notification, opts)
 
-    #   # Use postmark broadcast-stream
-    #   headers.merge!(message_stream: 'broadcast-stream') if defined?(Postmark)
+      # Use postmark broadcast-stream
+      headers.merge!(message_stream: 'broadcast-stream') if defined?(Postmark)
 
-    #   # Calls effective_resources subject proc, so we can prepend [LETTERS]
-    #   subject = subject_for(__method__, rendered.fetch(:subject), notification, opts)
+      # Calls effective_resources subject proc, so we can prepend [LETTERS]
+      subject = subject_for(__method__, rendered.fetch(:subject), notification, opts)
 
-    #   # Pass everything to mail
-    #   mail(rendered.merge(headers).merge(subject: subject))
-    # end
+      # Pass everything to mail
+      mail(rendered.merge(headers).merge(subject: subject))
+    end
 
     # Does not use effective_email_templates mailer
     def notify_resource(notification, resource, opts = {})
@@ -33,9 +33,6 @@ module Effective
       # Returns a Hash of params to pass to mail()
       # Includes a :to, :from, etc
       rendered = notification.render_email(resource)
-
-      # Attach report
-      attach_report!(notification)
 
       # Works with effective_logging to associate this email with the notification
       headers = headers_for(notification, opts)
@@ -54,6 +51,7 @@ module Effective
 
     def attach_report!(notification)
       return unless notification.attach_report?
+      raise("expected a scheduled email notification") unless notification.scheduled_email?
 
       report = notification.report
       raise("expected a report for notification id=#{notification.id}") unless report.present?

@@ -115,10 +115,13 @@ ActiveRecord::Schema.define(version: 6) do
     t.integer "report_id"
     t.string "audience"
     t.text "audience_emails"
+    t.boolean "enabled", default: false
     t.boolean "attach_report", default: false
     t.string "schedule_type"
     t.integer "immediate_days"
     t.integer "immediate_times"
+    t.string "scheduled_method"
+    t.text "scheduled_dates"
     t.string "subject"
     t.text "body"
     t.string "from"

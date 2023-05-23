@@ -31,6 +31,42 @@ module EffectiveMessagingTestBuilder
     )
   end
 
+  # scheduled_email?
+  def build_scheduled_emails_notification(report: nil)
+    report ||= build_report()
+
+    year = Time.zone.now.year
+
+    notification = Effective::Notification.new(
+      report: report,
+      audience: 'emails',
+      audience_emails: ['admin@codeandeffect.com', 'another@codeandeffect.com'],
+      schedule_type: 'scheduled',
+      scheduled_method: 'days',
+      scheduled_dates: ["#{year+1}-01-01", "#{year+2}-01-01", "#{year+3}-01-01"],
+      from: 'noreply@example.com',
+      subject: "Hello {{ first_name }} {{ last_name }}",
+      body: "Body {{ first_name }} {{ last_name }}",
+    )
+  end
+
+  def build_scheduled_report_notification(report: nil)
+    report ||= build_report()
+
+    year = Time.zone.now.year
+
+    notification = Effective::Notification.new(
+      report: report,
+      audience: 'report',
+      schedule_type: 'scheduled',
+      scheduled_method: 'days',
+      scheduled_dates: ["#{year+1}-01-01", "#{year+2}-01-01", "#{year+3}-01-01"],
+      from: 'noreply@example.com',
+      subject: "Hello {{ first_name }} {{ last_name }}",
+      body: "Body {{ first_name }} {{ last_name }}",
+    )
+  end
+
   def build_report
     user = build_user()
 
