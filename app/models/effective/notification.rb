@@ -285,7 +285,7 @@ module Effective
       date ||= Time.zone.now.beginning_of_day
 
       case scheduled_method
-      when 'days'
+      when 'dates'
         scheduled_dates.find { |day| day == date.strftime('%F') }.present?
       else
         raise('unsupported scheduled_method')
