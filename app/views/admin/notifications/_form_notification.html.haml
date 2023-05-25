@@ -28,13 +28,12 @@
         total notification(s).
 
     = f.show_if(:schedule_type, 'scheduled') do
-
       /= f.radios :scheduled_method, Effective::Notification::SCHEDULED_METHODS, label: false, required: true
       = f.hidden_field :scheduled_method, value: 'dates'
 
-      = f.show_if(:scheduled_method, 'dates') do
-        %p Send notification on the following scheduled dates:
-        = f.select :scheduled_dates, f.object.scheduled_dates, label: false, multiple: true, tags: true, hint: 'Add one or more dates by pressing enter. Please input in the format YYYY-MM-DD'
+      /= f.show_if(:scheduled_method, 'dates') do
+      %p Send notification on the following scheduled dates:
+      = f.select :scheduled_dates, f.object.scheduled_dates, label: false, multiple: true, tags: true, hint: 'Add one or more dates by pressing enter. Please input in the format YYYY-MM-DD'
 
 
   %h2 Report

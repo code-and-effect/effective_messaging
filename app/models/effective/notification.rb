@@ -87,7 +87,7 @@ module Effective
 
     # Emails or Report
     validates :audience, presence: true, inclusion: { in: AUDIENCES.map(&:last) }
-    validates :audience_emails, presence: true, if: -> { audience == 'emails' }
+    validates :audience_emails, presence: true, if: -> { audience_emails? }
 
     # Scheduled or Immediate
     validates :schedule_type, presence: true, inclusion: { in: SCHEDULE_TYPES.map(&:last) }
@@ -102,9 +102,9 @@ module Effective
     end
 
     # Scheduled
-    validates :scheduled_method, presence: true, if: -> { scheduled? }
+    validates :scheduled_method, presence: true, inclusion: { in: SCHEDULED_METHODS.map(&:last) }, if: -> { scheduled? }
 
-    with_options(if: -> { scheduled_method == 'dates' }) do
+    with_options(if: -> { scheduled_method.to_s == 'dates' }) do
       validates :scheduled_dates, presence: true
     end
 
