@@ -1,13 +1,4 @@
 PATH
-  remote: ../effective_reports
-  specs:
-    effective_reports (0.2.2)
-      effective_bootstrap
-      effective_datatables (>= 4.0.0)
-      effective_resources
-      rails (>= 6.0.0)
-
-PATH
   remote: .
   specs:
     effective_messaging (0.1.8)
@@ -142,6 +133,11 @@ GEM
       effective_resources
       liquid
       rails (>= 3.2.0)
+    effective_reports (0.2.3)
+      effective_bootstrap
+      effective_datatables (>= 4.0.0)
+      effective_resources
+      rails (>= 6.0.0)
     effective_resources (2.2.12)
       rails (>= 4.0.0)
     effective_test_bot (1.2.9)
@@ -289,7 +285,6 @@ DEPENDENCIES
   devise
   effective_developer
   effective_messaging!
-  effective_reports!
   effective_test_bot
   haml
   pry-byebug
