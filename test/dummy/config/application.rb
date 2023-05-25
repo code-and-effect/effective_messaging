@@ -7,7 +7,7 @@ require "rails/all"
 Bundler.require(*Rails.groups)
 
 require 'devise'
-require 'haml-rails'
+require 'haml'
 require 'effective_email_templates'
 require 'effective_reports'
 

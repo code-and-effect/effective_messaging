@@ -6,31 +6,7 @@
 %p Currently there are #{pluralize(notification.rows_count, 'rows')} that would be notified.
 
 = card(notification) do
-  %table.table
-    %tbody
-      %tr
-        %th Send At
-        %td= notification.send_at.strftime('%F %H:%M')
-
-      %tr
-        %th Report
-        %td= link_to(notification.report, effective_reports.admin_report_path(notification.report), target: '_blank')
-
-      %tr
-        %th Current rows count
-        %td= notification.rows_count
-
-      %tr
-        %th Started At
-        %td= notification.started_at&.strftime('%F %H:%M') || 'Never'
-
-      %tr
-        %th Completed At
-        %td= notification.completed_at&.strftime('%F %H:%M') || 'Never'
-
-      %tr
-        %th Notifications Sent
-        %td= notification.notifications_sent.presence || 'None'
+  = effective_table_with(notification)
 
 - if notification.rows_count > 0
   %p Using a random row from the data source, a preview of the notification follows:

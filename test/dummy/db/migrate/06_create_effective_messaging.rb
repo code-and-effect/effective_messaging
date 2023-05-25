@@ -49,7 +49,19 @@ class CreateEffectiveMessaging < ActiveRecord::Migration[6.0]
 
       t.integer :report_id
 
-      t.datetime :send_at
+      t.string :audience
+      t.text :audience_emails
+
+      t.boolean :enabled, default: false
+      t.boolean :attach_report, default: false
+
+      t.string :schedule_type
+
+      t.integer :immediate_days
+      t.integer :immediate_times
+
+      t.string :scheduled_method
+      t.text :scheduled_dates
 
       t.string :subject
       t.text :body
@@ -58,9 +70,23 @@ class CreateEffectiveMessaging < ActiveRecord::Migration[6.0]
       t.string :cc
       t.string :bcc
 
-      t.datetime :started_at
-      t.datetime :completed_at
-      t.integer :notifications_sent
+      t.datetime :last_notified_at
+      t.integer :last_notified_count
+
+      t.timestamps
+    end
+
+    create_table :notification_logs do |t|
+      t.integer :notification_id
+      t.integer :report_id
+
+      t.integer :user_id
+      t.string :user_type
+
+      t.integer :resource_id
+      t.string :resource_type
+
+      t.string :email
 
       t.timestamps
     end

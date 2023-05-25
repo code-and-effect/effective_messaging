@@ -23,8 +23,13 @@ class MessagingTest < ActiveSupport::TestCase
     assert report.email_report_column.present?
   end
 
-  test 'notification factory' do
-    notification = build_notification()
+  test 'notification report factory' do
+    notification = build_immediate_report_notification()
+    assert notification.valid?
+  end
+
+  test 'notification email factory' do
+    notification = build_immedate_emails_notification()
     assert notification.valid?
   end
 

@@ -1,35 +1,55 @@
 = effective_form_with(model: [:admin, notification], engine: true) do |f|
-  %h2 Data Source
-  %p
-    Please select a
-    = link_to 'report', effective_reports.admin_reports_path, target: '_blank'
-    with an email report column to use as the data source.
+  %h2 Audience
+  %p Please select who the notifications should be sent to
+  = f.radios :audience, Effective::Notification::AUDIENCES, label: false, buttons: true
 
-  %p Each result from the report will be sent a notification.
+  = f.show_if(:audience, 'report') do
+    %p The notification will be sent to the user or email from the report.
 
+  = f.show_if(:audience, 'emails') do
+    %p The notification will be sent to the following address(es):
+
+    = f.select :audience_emails, f.object.audience_emails, label: 'Send to', multiple: true, tags: true, hint: 'Add one or more email address by pressing enter'
+
+  %h2 Schedule
+  %p Please select how and when the notifications should be sent
+
+  = f.check_box :enabled, label: "Yes, this notification is enabled and notification emails should be sent"
+
+  = f.show_if(:enabled, true) do
+    = f.select :schedule_type, Effective::Notification::SCHEDULE_TYPES
+
+    = f.show_if(:schedule_type, 'immediate') do
+      .d-flex
+        Send notification immediately and then every
+        .mx-3= f.number_field :immediate_days, label: false, min: 0, max: 365
+        day(s) thereafter, for
+        .mx-3= f.number_field :immediate_times, label: false, min: 1, max: 1000
+        total notification(s).
+
+    = f.show_if(:schedule_type, 'scheduled') do
+      /= f.radios :scheduled_method, Effective::Notification::SCHEDULED_METHODS, label: false, required: true
+      = f.hidden_field :scheduled_method, value: 'dates'
+
+      /= f.show_if(:scheduled_method, 'dates') do
+      %p Send notification on the following scheduled dates:
+      = f.select :scheduled_dates, f.object.scheduled_dates, label: false, multiple: true, tags: true, hint: 'Add one or more dates by pressing enter. Please input in the format YYYY-MM-DD'
+
+
+  %h2 Report
   .row
     .col-md-6
-      = f.select :report_id, Effective::Report.sorted.emails.all, label: 'Report with email column',
+      = f.select :report_id, Effective::Report.sorted.notifiable.all,
+        hint: "Please select a #{link_to 'report', effective_reports.admin_reports_path, target: '_blank'} with a user or email column to use as the data source",
         'data-load-ajax-url': effective_messaging.new_admin_notification_path,
         'data-load-ajax-div': '#effective-messaging-ajax'
 
-  %h2 Schedule
-  %p Please select a date when the notifications should be sent
-
-  .row
-    .col-md-6
-      - minDate = [f.object.created_at, Time.zone.now].compact.min
-
-      = f.datetime_field :send_at, label: 'Send the notification at', input_js: { minDate: minDate.strftime('%F %H:%M:%S') },
-        hint: 'A future date. Changing this value will reset the started_at and completed_at dates so this notification can be sent again.'
-    .col-md-6
-      - if f.object.completed_at.present?
-        = f.static_field :completed_at
-      - elsif f.object.started_at.present?
-        = f.static_field :started_at
+  = f.show_if(:audience, 'emails') do
+    = f.show_if(:schedule_type, 'scheduled') do
+      = f.check_box :attach_report, label: 'Yes, attach a .csv file with the report data', hint: 'only available to scheduled emails sent to specific addresses'
 
   %h2 Notification
-  %p The following notification will be sent to each row in the data source
+  %p The following email notification will be sent
 
   - froms = Array(EffectiveMessaging.froms)
 
@@ -39,6 +59,7 @@
   - else
     = f.email_field :from
 
+  = f.email_field :bcc
   = f.text_field :subject
   = f.text_area :body
 
@@ -53,8 +74,8 @@
   = f.submit do
     = f.save 'Save'
 
-    - if f.object.persisted? && !f.object.in_progress?
-      = f.save 'Send Now', class: 'btn btn-warning', 'data-confirm': "Really send #{pluralize(notification.rows_count, 'notification')} now?"
+    - if EffectiveResources.authorized?(self, :send_now, f.object)
+      = f.save 'Send Now', class: 'btn btn-warning', 'data-confirm': "Really send now?"
 
     = f.save 'Add New', class: 'btn btn-secondary'
     = f.save 'Continue', class: 'btn btn-secondary'

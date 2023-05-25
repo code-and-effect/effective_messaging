@@ -8,6 +8,14 @@ module EffectiveMessagingTestHelper
     sign_in(user); yield; logout(:user)
   end
 
+  def with_time_travel(date, &block)
+    begin
+      Timecop.travel(date); yield
+    ensure
+      Timecop.return
+    end
+  end
+
   # assert_email :new_user_sign_up
   # assert_email :new_user_sign_up, to: 'newuser@example.com'
   # assert_email from: 'admin@example.com'
@@ -26,6 +34,8 @@ module EffectiveMessagingTestHelper
         assert (difference > 0), "(assert_email) Expected at least one email to have been delivered"
       end
     end
+
+    return if count == 0
 
     if (action || to || from || subject || body).nil?
       assert ActionMailer::Base.deliveries.present?, message || "(assert_email) Expected email to have been delivered"

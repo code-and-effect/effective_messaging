@@ -14,6 +14,7 @@ EffectiveMessaging::Engine.routes.draw do
     resources :chats
     resources :chat_messages, only: [:index, :show, :destroy]
     resources :notifications
+    resources :notification_logs, only: [:index, :destroy]
   end
 
 end

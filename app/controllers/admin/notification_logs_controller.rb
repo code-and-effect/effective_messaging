@@ -1,16 +1,14 @@
 module Admin
-  class NotificationsController < ApplicationController
+  class NotificationLogsController < ApplicationController
     before_action(:authenticate_user!) if defined?(Devise)
     before_action { EffectiveResources.authorize!(self, :admin, :effective_messaging) }
 
     include Effective::CrudController
 
-    submit :send_now, 'Send Now'
-
     private
 
     def permitted_params
-      params.require(:effective_notification).permit!
+      params.require(:effective_notification_log).permit!
     end
 
   end

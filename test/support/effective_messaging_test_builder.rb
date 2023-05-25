@@ -1,11 +1,66 @@
 module EffectiveMessagingTestBuilder
 
-  def build_notification(report: nil)
+  def build_immedate_emails_notification(report: nil)
     report ||= build_report()
 
     notification = Effective::Notification.new(
       report: report,
-      send_at: Time.zone.now,
+      audience: 'emails',
+      audience_emails: ['admin@codeandeffect.com', 'another@codeandeffect.com'],
+      schedule_type: 'immediate',
+      immediate_days: 7,
+      immediate_times: 3,
+      from: 'noreply@example.com',
+      subject: "Hello {{ first_name }} {{ last_name }}",
+      body: "Body {{ first_name }} {{ last_name }}",
+    )
+  end
+
+  def build_immediate_report_notification(report: nil)
+    report ||= build_report()
+
+    notification = Effective::Notification.new(
+      report: report,
+      audience: 'report',
+      schedule_type: 'immediate',
+      immediate_days: 7,
+      immediate_times: 3,
+      from: 'noreply@example.com',
+      subject: "Hello {{ first_name }} {{ last_name }}",
+      body: "Body {{ first_name }} {{ last_name }}",
+    )
+  end
+
+  # scheduled_email?
+  def build_scheduled_emails_notification(report: nil)
+    report ||= build_report()
+
+    year = Time.zone.now.year
+
+    notification = Effective::Notification.new(
+      report: report,
+      audience: 'emails',
+      audience_emails: ['admin@codeandeffect.com', 'another@codeandeffect.com'],
+      schedule_type: 'scheduled',
+      scheduled_method: 'dates',
+      scheduled_dates: ["#{year+1}-01-01", "#{year+2}-01-01", "#{year+3}-01-01"],
+      from: 'noreply@example.com',
+      subject: "Hello {{ first_name }} {{ last_name }}",
+      body: "Body {{ first_name }} {{ last_name }}",
+    )
+  end
+
+  def build_scheduled_report_notification(report: nil)
+    report ||= build_report()
+
+    year = Time.zone.now.year
+
+    notification = Effective::Notification.new(
+      report: report,
+      audience: 'report',
+      schedule_type: 'scheduled',
+      scheduled_method: 'dates',
+      scheduled_dates: ["#{year+1}-01-01", "#{year+2}-01-01", "#{year+3}-01-01"],
       from: 'noreply@example.com',
       subject: "Hello {{ first_name }} {{ last_name }}",
       body: "Body {{ first_name }} {{ last_name }}",
