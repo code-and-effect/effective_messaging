@@ -50,7 +50,7 @@
   %h2 Notification
   %p The following email notification will be sent
 
-  - froms = Array(EffectiveMessaging.froms)
+  - froms = Array(EffectiveMessaging.froms) - [nil, '']
 
   - if froms.present?
     = f.select :from, Array(froms).map { |from| [from, from] }
