@@ -53,7 +53,7 @@
   - froms = Array(EffectiveMessaging.froms) - [nil, '']
 
   - if froms.present?
-    = f.select :from, Array(froms).map { |from| [from, from] }
+    = f.radios :from, froms
   - else
     = f.email_field :from
 
