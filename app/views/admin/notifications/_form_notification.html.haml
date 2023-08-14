@@ -35,7 +35,6 @@
       %p Send notification on the following scheduled dates:
       = f.select :scheduled_dates, f.object.scheduled_dates, label: false, multiple: true, tags: true, hint: 'Add one or more dates by pressing enter. Please input in the format YYYY-MM-DD'
 
-
   %h2 Report
   .row
     .col-md-6
@@ -54,8 +53,7 @@
   - froms = Array(EffectiveMessaging.froms)
 
   - if froms.present?
-    - f.object.from ||= froms.first
-    = f.select :from, Array(froms)
+    = f.select :from, Array(froms).map { |from| [from, from] }
   - else
     = f.email_field :from
 
