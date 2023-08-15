@@ -13,7 +13,7 @@
 
   = card('Preview of Notification') do
     - resource = notification.report.collection.order('RANDOM()').first
-    - rendered = notification.render_email(resource)
+    - rendered = notification.assign_renderer(self).render_email(resource)
 
     %table.table
       %tbody

@@ -34,6 +34,10 @@ module Admin
 
       col :report, search: Effective::Report.notifiable.sorted
 
+      col(:rows_count) do |notification|
+        notification.report.collection().count
+      end
+
       col :subject
       col :body, visible: false
 

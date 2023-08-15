@@ -59,7 +59,7 @@
 
   = f.email_field :bcc
   = f.text_field :subject
-  = f.text_area :body
+  = f.text_area :body, rows: 20
 
   #effective-messaging-ajax
     - if f.object.report.present?

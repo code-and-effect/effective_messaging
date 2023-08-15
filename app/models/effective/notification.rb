@@ -6,6 +6,7 @@ module Effective
 
     attr_accessor :current_user
     attr_accessor :current_resource
+    attr_accessor :view_context
 
     log_changes if respond_to?(:log_changes)
 
@@ -192,7 +193,17 @@ module Effective
     end
 
     def report_variables
-      Array(report&.report_columns).map(&:name)
+      assigns_for().keys
+    end
+
+    def assign_renderer(view_context)
+      raise('expected renderer to respond to') unless view_context.respond_to?(:root_url)
+      assign_attributes(view_context: view_context)
+      self
+    end
+
+    def renderer
+      view_context || ApplicationController.renderer
     end
 
     def rows_count
@@ -316,13 +327,25 @@ module Effective
       }.compact
     end
 
-    def assigns_for(resource)
-      return {} unless resource.present?
+    # We pull the Assigns from 3 places:
+    # 1. The report.report_columns
+    # 2. The class's def reportable_view_assigns(view) method
+    def assigns_for(resource = nil)
+      return {} unless report.present? 
 
-      Array(report&.report_columns).inject({}) do |h, column|
+      resource ||= report.reportable.new
+      raise('expected an acts_as_reportable resource') unless resource.class.try(:acts_as_reportable?)
+      
+      report_assigns = Array(report.report_columns).inject({}) do |h, column|
         value = resource.send(column.name)
         h[column.name] = column.format(value); h
       end
+
+      reportable_view_assigns = resource.reportable_view_assigns(renderer).deep_stringify_keys
+      raise('expected notification assigns to return a Hash') unless reportable_view_assigns.kind_of?(Hash)
+
+      # Merge all 3
+      report_assigns.merge(reportable_view_assigns)
     end
 
     def build_notification_log(resource: nil)
