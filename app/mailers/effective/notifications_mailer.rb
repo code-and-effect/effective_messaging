@@ -6,8 +6,8 @@ module Effective
       raise('expected an Effective::Notification') unless notification.kind_of?(Effective::Notification)
 
       # Returns a Hash of params to pass to mail()
-      # Includes a :to, :from, etc
-      rendered = notification.render_email
+      # Includes a :to, :from, :subject and :body, etc
+      rendered = notification.assign_renderer(view_context).render_email
 
       # Attach report
       attach_report!(notification)
@@ -31,8 +31,8 @@ module Effective
       raise('expected an acts_as_reportable resource') unless resource.class.try(:acts_as_reportable?)
 
       # Returns a Hash of params to pass to mail()
-      # Includes a :to, :from, etc
-      rendered = notification.render_email(resource)
+      # Includes a :to, :from, :subject and :body
+      rendered = notification.assign_renderer(view_context).render_email(resource)
 
       # Works with effective_logging to associate this email with the notification
       headers = headers_for(notification, opts)
