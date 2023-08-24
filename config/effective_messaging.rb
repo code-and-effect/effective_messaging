@@ -1,10 +1,4 @@
 EffectiveMessaging.setup do |config|
-  config.chats_table_name = :chats
-  config.chat_users_table_name = :chat_users
-  config.chat_messages_table_name = :chat_messages
-  config.notifications_table_name = :notifications
-  config.notification_logs_table_name = :notification_logs
-
   # Layout Settings
   # Configure the Layout per controller, or all at once
   # config.layout = { application: 'application', admin: 'admin' }

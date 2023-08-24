@@ -2,7 +2,7 @@
 
 module Effective
   class NotificationLog < ActiveRecord::Base
-    self.table_name = EffectiveMessaging.notification_logs_table_name.to_s
+    self.table_name = (EffectiveMessaging.notification_logs_table_name || :notification_logs).to_s
 
     belongs_to :notification
 

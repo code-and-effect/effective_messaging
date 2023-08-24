@@ -2,7 +2,7 @@
 
 module Effective
   class Chat < ActiveRecord::Base
-    self.table_name = EffectiveMessaging.chats_table_name.to_s
+    self.table_name = (EffectiveMessaging.chats_table_name || :chats).to_s
 
     NOTIFY_AFTER = 2.minutes
 

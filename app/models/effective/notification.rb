@@ -2,7 +2,7 @@
 
 module Effective
   class Notification < ActiveRecord::Base
-    self.table_name = EffectiveMessaging.notifications_table_name.to_s
+    self.table_name = (EffectiveMessaging.notifications_table_name || :notifications).to_s
 
     attr_accessor :current_user
     attr_accessor :current_resource

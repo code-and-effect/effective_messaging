@@ -2,7 +2,7 @@
 
 module Effective
   class ChatMessage < ActiveRecord::Base
-    self.table_name = EffectiveMessaging.chat_messages_table_name.to_s
+    self.table_name = (EffectiveMessaging.chat_messages_table_name || :chat_messages).to_s
 
     log_changes(to: :chat) if respond_to?(:log_changes)
 
