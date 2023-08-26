@@ -11,29 +11,34 @@
 
     = f.select :audience_emails, f.object.audience_emails, label: 'Send to', multiple: true, tags: true, hint: 'Add one or more email address by pressing enter'
 
+  %h2 Enabled
+  %p When unchecked, no emails will be sent
+  = f.check_box :enabled, label: "Yes, this notification is enabled and notification emails should be sent"
+
   %h2 Schedule
   %p Please select how and when the notifications should be sent
 
-  = f.check_box :enabled, label: "Yes, this notification is enabled and notification emails should be sent"
+  .row
+    .col-md-6
+      = f.select :schedule_type, Effective::Notification::SCHEDULE_TYPES
 
-  = f.show_if(:enabled, true) do
-    = f.select :schedule_type, Effective::Notification::SCHEDULE_TYPES
+  = f.show_if(:schedule_type, 'immediate') do
+    .d-flex
+      Send notification immediately and then every
+      .mx-3= f.number_field :immediate_days, label: false, min: 0, max: 365
+      day(s) thereafter, for
+      .mx-3= f.number_field :immediate_times, label: false, min: 1, max: 1000
+      total notification(s).
 
-    = f.show_if(:schedule_type, 'immediate') do
-      .d-flex
-        Send notification immediately and then every
-        .mx-3= f.number_field :immediate_days, label: false, min: 0, max: 365
-        day(s) thereafter, for
-        .mx-3= f.number_field :immediate_times, label: false, min: 1, max: 1000
-        total notification(s).
+  = f.show_if(:schedule_type, 'scheduled') do
+    = f.hidden_field :scheduled_method, value: 'dates'
 
-    = f.show_if(:schedule_type, 'scheduled') do
-      /= f.radios :scheduled_method, Effective::Notification::SCHEDULED_METHODS, label: false, required: true
-      = f.hidden_field :scheduled_method, value: 'dates'
+    %p Send notification on the following scheduled dates:
 
-      /= f.show_if(:scheduled_method, 'dates') do
-      %p Send notification on the following scheduled dates:
-      = f.select :scheduled_dates, f.object.scheduled_dates, label: false, multiple: true, tags: true, hint: 'Add one or more dates by pressing enter. Please input in the format YYYY-MM-DD'
+    .row
+      .col-md-6
+        = f.select :scheduled_dates, f.object.scheduled_dates, multiple: true, tags: true, 
+          hint: 'Add one or more dates by pressing enter. Please input in the format YYYY-MM-DD'
 
   %h2 Report
   .row

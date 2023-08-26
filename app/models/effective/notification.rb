@@ -203,7 +203,7 @@ module Effective
     end
 
     def renderer
-      view_context || ApplicationController.renderer
+      view_context || nil # This isn't ideal
     end
 
     def rows_count
