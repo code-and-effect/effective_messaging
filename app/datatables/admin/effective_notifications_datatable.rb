@@ -32,7 +32,7 @@ module Admin
       col :scheduled_method, visible: false
       col :scheduled_dates, visible: false
 
-      col :report, search: Effective::Report.notifiable.sorted
+      col :report, search: Effective::Report.notifiable.sorted, action: :show
 
       col(:rows_count) do |notification|
         notification.report.collection().count
