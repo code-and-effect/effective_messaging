@@ -1,0 +1,49 @@
+%p
+  This notification will be sent to all rows from the
+  = link_to(notification.report, effective_reports.admin_report_path(notification.report), target: '_blank')
+  report at the time of sending.
+
+%p Tomorrow morning, #{pluralize(notification.notifiable_tomorrow_rows_count, 'rows')} notifications will be sent.
+
+.mb-2
+  = collapse('Show notification details') do
+    = effective_table_with(notification)
+
+.mb-2
+  = collapse("Show report data") do
+    %h4= notification.report.to_s
+    = render 'admin/reports/report', report: notification.report
+
+- if notification.rows_count > 0
+  %p Using a random row from the data source, a preview of the notification follows:
+
+  = card('Preview') do
+    - resource = notification.report.collection.order('RANDOM()').first
+    - rendered = notification.assign_renderer(self).render_email(resource)
+
+    %table.table
+      %tbody
+        %tr
+          %th To
+          %td= rendered.fetch(:to)
+        %tr
+          %th From
+          %td= rendered.fetch(:from)
+
+        - if (cc = rendered[:cc]).present?
+          %tr
+            %th CC
+            %td= cc
+
+        - if (bcc = rendered[:bcc]).present?
+          %tr
+            %th BCC
+            %td= bcc
+
+        %tr
+          %th Subject
+          %td= rendered.fetch(:subject)
+
+        %tr
+          %td{colspan: 2}
+            = simple_format(rendered.fetch(:body).to_s)

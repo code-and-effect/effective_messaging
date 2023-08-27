@@ -103,6 +103,7 @@ ActiveRecord::Schema.define(version: 101) do
     t.integer "resource_id"
     t.string "resource_type"
     t.string "email"
+    t.boolean "skipped", default: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end

@@ -5,8 +5,6 @@ module Admin
 
     include Effective::CrudController
 
-    submit :send_now, 'Send Now'
-
     private
 
     def permitted_params

@@ -87,6 +87,7 @@ class CreateEffectiveMessaging < ActiveRecord::Migration[6.0]
       t.string :resource_type
 
       t.string :email
+      t.boolean :skipped, default: false
 
       t.timestamps
     end

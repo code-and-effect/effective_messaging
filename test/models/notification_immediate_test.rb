@@ -91,4 +91,114 @@ class NotificatioImmediateTest < ActiveSupport::TestCase
     with_time_travel(now + 2.days) { assert_email(count: 0) { notification.notify! } }
   end
 
+  test 'will only send once per day' do
+    5.times { create_user!() }
+
+    notification = build_immediate_report_notification()
+    notification.save!
+
+    assert_equal 7, notification.immediate_days
+    assert_equal 3, notification.immediate_times
+    assert_equal 5, notification.rows_count
+
+    now = Time.zone.now.beginning_of_day
+
+    # Send the first time
+    with_time_travel(now) { assert_email(count: 5) { notification.notify! } }
+
+    # Send the first time - Indempotent
+    with_time_travel(now) { assert_email(count: 0) { notification.notify! } }
+    with_time_travel(now) { assert_email(count: 0) { notification.notify! } }
+
+    # Nothing to do
+    with_time_travel(now + 1.days) { assert_email(count: 0) { notification.notify! } }
+    with_time_travel(now + 6.days) { assert_email(count: 0) { notification.notify! } }
+
+    # Send the second time
+    with_time_travel(now + 7.days) { assert_email(count: 5) { notification.notify! } }
+
+    # Send the second time - Indempotent
+    with_time_travel(now + 7.days) { assert_email(count: 0) { notification.notify! } }
+    with_time_travel(now + 7.days) { assert_email(count: 0) { notification.notify! } }
+
+    # Nothing to do
+    with_time_travel(now + 13.days) { assert_email(count: 0) { notification.notify! } }
+
+    # Send the third time
+    with_time_travel(now + 14.days) { assert_email(count: 5) { notification.notify! } }
+
+    # Nothing to do
+    with_time_travel(now + 20.days) { assert_email(count: 0) { notification.notify! } }
+
+    # Nothing to do. We already sent 3 times
+    with_time_travel(now + 21.days) { assert_email(count: 0) { notification.notify! } }
+    with_time_travel(now + 28.days) { assert_email(count: 0) { notification.notify! } }
+  end
+
+  test 'notifiable?' do
+    5.times { create_user!() }
+
+    notification = build_immediate_report_notification()
+    notification.save!
+
+    assert_equal 7, notification.immediate_days
+    assert_equal 3, notification.immediate_times
+    assert_equal 5, notification.rows_count
+
+    now = Time.zone.now.beginning_of_day
+
+    # Send the first time
+    with_time_travel(now) { assert_equal 5, notification.notifiable_rows_count }
+    with_time_travel(now) { assert_email(count: 5) { notification.notify! } }
+
+    # Send the first time - Indempotent
+    with_time_travel(now) { assert_equal 0, notification.notifiable_rows_count }
+    with_time_travel(now) { assert_email(count: 0) { notification.notify! } }
+
+    # Nothing to do
+    with_time_travel(now + 1.days) { assert_equal 0, notification.notifiable_rows_count }
+    with_time_travel(now + 6.days) { assert_equal 0, notification.notifiable_rows_count }
+
+    # Send the second time
+    with_time_travel(now + 7.days) { assert_equal 5, notification.notifiable_rows_count }
+    with_time_travel(now + 7.days) { assert_email(count: 5) { notification.notify! } }
+  end
+
+  test 'notifiable_tomorrow?' do
+    5.times { create_user!() }
+
+    notification = build_immediate_report_notification()
+    notification.save!
+
+    assert_equal 7, notification.immediate_days
+    assert_equal 3, notification.immediate_times
+    assert_equal 5, notification.rows_count
+
+    now = Time.zone.now.beginning_of_day
+
+    # Send the first time
+    with_time_travel(now) { assert_equal 5, notification.notifiable_rows_count }
+    with_time_travel(now) { assert_equal 5, notification.notifiable_tomorrow_rows_count }
+    with_time_travel(now) { assert_email(count: 5) { notification.notify! } }
+
+    # Send the first time - Indempotent
+    with_time_travel(now) { assert_equal 0, notification.notifiable_rows_count }
+    with_time_travel(now) { assert_equal 0, notification.notifiable_tomorrow_rows_count }
+    with_time_travel(now) { assert_email(count: 0) { notification.notify! } }
+
+    # Nothing to do
+    with_time_travel(now + 1.days) { assert_equal 0, notification.notifiable_rows_count }
+    with_time_travel(now + 1.days) { assert_equal 0, notification.notifiable_tomorrow_rows_count }
+
+    with_time_travel(now + 5.days) { assert_equal 0, notification.notifiable_rows_count }
+    with_time_travel(now + 5.days) { assert_equal 0, notification.notifiable_tomorrow_rows_count }
+
+    with_time_travel(now + 6.days) { assert_equal 0, notification.notifiable_rows_count }
+    with_time_travel(now + 6.days) { assert_equal 5, notification.notifiable_tomorrow_rows_count }
+
+    # Send the second time
+    with_time_travel(now + 7.days) { assert_equal 5, notification.notifiable_rows_count }
+    with_time_travel(now + 7.days) { assert_email(count: 5) { notification.notify! } }
+  end
+
 end

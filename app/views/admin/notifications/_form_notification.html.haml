@@ -76,9 +76,5 @@
 
   = f.submit do
     = f.save 'Save'
-
-    - if EffectiveResources.authorized?(self, :send_now, f.object)
-      = f.save 'Send Now', class: 'btn btn-warning', 'data-confirm': "Really send now?"
-
     = f.save 'Add New', class: 'btn btn-secondary'
     = f.save 'Continue', class: 'btn btn-secondary'

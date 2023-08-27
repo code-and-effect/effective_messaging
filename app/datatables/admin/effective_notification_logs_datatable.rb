@@ -8,9 +8,10 @@ module Admin
 
       col :notification
       col :report, visible: !attributes[:inline]
-      col :resource
-      col :user
-      col :email, visible: false
+      col :resource, search: :string
+      col :user, search: :string
+      col :email
+      col :skipped
 
       actions_col
     end

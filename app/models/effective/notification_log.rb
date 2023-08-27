@@ -12,6 +12,7 @@ module Effective
 
     effective_resource do
       email        :string
+      skipped      :boolean
 
       timestamps
     end
@@ -25,8 +26,8 @@ module Effective
       model_name.human
     end
 
-    def days_ago
-      now = Time.zone.now.to_date
+    def days_ago(date: nil)
+      now = (date || Time.zone.now).to_date
       (now - (created_at&.to_date || now)).to_i
     end
 

@@ -11,6 +11,7 @@ module Effective
 
       # Attach report
       attach_report!(notification)
+      rendered.delete(:content_type) if notification.attach_report?
 
       # Works with effective_logging to associate this email with the notification
       headers = headers_for(notification, opts)

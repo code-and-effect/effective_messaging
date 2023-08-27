@@ -13,7 +13,12 @@ EffectiveMessaging::Engine.routes.draw do
   namespace :admin do
     resources :chats
     resources :chat_messages, only: [:index, :show, :destroy]
-    resources :notifications
+
+    resources :notifications do
+      post :send_now, on: :member
+      post :skip_once, on: :member
+    end
+
     resources :notification_logs, only: [:index, :destroy]
   end
 

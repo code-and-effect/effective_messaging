@@ -1,43 +1,11 @@
-%p
-  This notification will be sent to all rows from the
-  = link_to(notification.report, effective_reports.admin_report_path(notification.report), target: '_blank')
-  report at the time of sending.
+= tabs do
+  = tab 'Notification' do
+    = render 'admin/notifications/summary', notification: notification
 
-%p Currently there are #{pluralize(notification.rows_count, 'rows')} that would be notified.
+  - if notification.persisted? && notification.respond_to?(:logs_datatable)
+    = tab 'Email Logs' do
+      - datatable = Admin::EffectiveNotificationLogsDatatable.new(notification: notification)
+      = render_inline_datatable(datatable)
 
-= card(notification) do
-  = effective_table_with(notification)
-
-- if notification.rows_count > 0
-  %p Using a random row from the data source, a preview of the notification follows:
-
-  = card('Preview of Notification') do
-    - resource = notification.report.collection.order('RANDOM()').first
-    - rendered = notification.assign_renderer(self).render_email(resource)
-
-    %table.table
-      %tbody
-        %tr
-          %th To
-          %td= rendered.fetch(:to)
-        %tr
-          %th From
-          %td= rendered.fetch(:from)
-
-        - if (cc = rendered[:cc]).present?
-          %tr
-            %th CC
-            %td= cc
-
-        - if (bcc = rendered[:bcc]).present?
-          %tr
-            %th BCC
-            %td= bcc
-
-        %tr
-          %th Subject
-          %td= rendered.fetch(:subject)
-
-        %tr
-          %td{colspan: 2}
-            = simple_format(rendered.fetch(:body).to_s)
+    = tab 'Logs' do
+      = render_inline_datatable(notification.logs_datatable)
