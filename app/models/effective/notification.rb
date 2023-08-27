@@ -102,6 +102,10 @@ module Effective
       validates :immediate_times, presence: true, numericality: { greater_than_or_equal_to: 1 }
     end
 
+    validate(if: -> { immediate? && immediate_days.present? && immediate_times.present? }) do
+      self.errors.add(:immediate_times, "must be 1 when when using every 0 days") if immediate_days == 0 && immediate_times != 1
+    end
+
     # Scheduled
     validates :scheduled_method, presence: true, inclusion: { in: SCHEDULED_METHODS.map(&:last) }, if: -> { scheduled? }
 
@@ -154,6 +158,8 @@ module Effective
       end
     end
 
+    # This operates on each row of the resource.
+    # We track the number of notifications total to see if we should notify again or not
     def immediate?
       schedule_type == 'immediate'
     end
@@ -210,24 +216,55 @@ module Effective
       @rows_count ||= report.collection().count if report
     end
 
-    # Button on the Admin interface. Enqueues the job to send right away.
+    def notifiable_rows_count
+      report.collection().select { |resource| notifiable?(resource) }.count if report
+    end
+
+    def notifiable_tomorrow_rows_count
+      report.collection().select { |resource| notifiable_tomorrow?(resource) }.count if report
+    end
+
+    # Enqueues this notification to send right away.
+    # Only applies to scheduled_email? notifications
     def send_now!
       raise('expected to be persisted') unless persisted?
-      NotificationJob.perform_later(id)
+      NotificationJob.perform_later(id, force: true)
       true
     end
 
-    # The main function
-    def notify!
-      scheduled_email? ? notify_by_schedule! : notify_by_resources!
-    end
-
-    # Operates on every resource in the data source. Sends one email for each row
-    def notify_by_resources!
+    # Only applies to immedate? notifications
+    # Skips over one notification on the immediate notifications
+    def skip_once!
       notified = 0
 
       report.collection().find_each do |resource|
-        next unless notifiable?(resource)
+        print('.')
+
+        # For logging
+        assign_attributes(current_resource: resource)
+
+        # Send the resource email
+        build_notification_log(resource: resource, skipped: true).save!
+
+        notified += 1
+
+        GC.start if (notified % 250) == 0
+      end
+
+      touch
+    end
+
+    # The main function to send this thing
+    def notify!(force: false)
+      scheduled_email? ? notify_by_schedule!(force: force) : notify_by_resources!(force: force)
+    end
+
+    # Operates on every resource in the data source. Sends one email for each row
+    def notify_by_resources!(force: false)
+      notified = 0
+
+      report.collection().find_each do |resource|
+        next unless notifiable?(resource) || force
         print('.')
 
         # For logging
@@ -245,10 +282,10 @@ module Effective
       notified > 0 ? update!(last_notified_at: Time.zone.now, last_notified_count: notified) : touch
     end
 
-    def notify_by_schedule!
+    def notify_by_schedule!(force: false)
       notified = 0
 
-      if notifiable_scheduled?
+      if notifiable_scheduled? || force
         build_notification_log(resource: nil).save!
         Effective::NotificationsMailer.notify(self).deliver_now
         notified += 1
@@ -257,22 +294,27 @@ module Effective
       notified > 0 ? update!(last_notified_at: Time.zone.now, last_notified_count: notified) : touch
     end
 
-    def notifiable?(resource)
+    def notifiable?(resource, date: nil)
       raise('expected an acts_as_reportable resource') unless resource.class.try(:acts_as_reportable?)
 
       if schedule_type == 'immediate'
-        notifiable_immediate?(resource: resource)
+        notifiable_immediate?(resource: resource, date: date)
       elsif schedule_type == 'scheduled'
-        notifiable_scheduled?(date: nil)
+        notifiable_scheduled?(date: date)
       else
         raise("unsupported schedule_type")
       end
     end
 
+    def notifiable_tomorrow?(resource)
+      date = Time.zone.now.beginning_of_day.advance(days: 1)
+      notifiable?(resource, date: date)
+    end
+
     # Consider the notification logs which track how many and how long ago this notification was sent
     # It's notifiable? when first time or if it's been immediate_days since last notification
-    def notifiable_immediate?(resource:)
-      raise('expected an immexiate? notification') unless immediate?
+    def notifiable_immediate?(resource:, date: nil)
+      raise('expected an immediate? notification') unless immediate?
 
       email = resource_email(resource) || resource_user(resource).try(:email)
       raise("expected an email for #{report} #{report&.id} and #{resource} #{resource&.id}") unless email.present?
@@ -283,8 +325,8 @@ module Effective
         true # This is the first time. We should send.
       elsif logs.count < immediate_times
         # We still have to send it but consider dates.
-        last_sent_days_ago = logs.map(&:days_ago).min || 0
-        last_sent_days_ago >= immediate_days
+        last_sent_days_ago = logs.map { |log| log.days_ago(date: date) }.min || 0
+        (last_sent_days_ago >= immediate_days)
       else
         false # We've already sent enough times
       end
@@ -348,13 +390,13 @@ module Effective
       report_assigns.merge(reportable_view_assigns)
     end
 
-    def build_notification_log(resource: nil)
+    def build_notification_log(resource: nil, skipped: false)
       user = resource_user(resource)
 
       email = resource_email(resource) || user.try(:email)
       email ||= audience_emails_to_s if scheduled_email?
 
-      notification_logs.build(email: email, report: report, resource: resource, user: user)
+      notification_logs.build(email: email, report: report, resource: resource, user: user, skipped: skipped)
     end
 
     private
