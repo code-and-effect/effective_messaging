@@ -224,6 +224,14 @@ module Effective
       report.collection().select { |resource| notifiable_tomorrow?(resource) }.count if report
     end
 
+    def enable!
+      update!(enabled: true)
+    end
+
+    def disable!
+      update!(enabled: false)
+    end
+
     # Enqueues this notification to send right away.
     # Only applies to scheduled_email? notifications
     def send_now!

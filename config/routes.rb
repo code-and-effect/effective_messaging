@@ -15,6 +15,9 @@ EffectiveMessaging::Engine.routes.draw do
     resources :chat_messages, only: [:index, :show, :destroy]
 
     resources :notifications do
+      post :enable, on: :member
+      post :disable, on: :member
+
       post :send_now, on: :member
       post :skip_once, on: :member
     end
