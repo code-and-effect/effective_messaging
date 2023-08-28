@@ -86,7 +86,7 @@ module Effective
       ].join(" ")
 
       # Attach unsubscribe link
-      rendered[:body] = "#{rendered[:body]}\r\n\r\n#{unsubscribe}\r\n\r\n"
+      rendered[:body] = "#{rendered[:body]}\r\n\r\n#{unsubscribe}"
 
       rendered
     end
