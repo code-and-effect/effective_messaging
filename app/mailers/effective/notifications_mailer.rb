@@ -80,7 +80,7 @@ module Effective
       url = view_context.root_url
 
       unsubscribe = [
-        "You received this message because of your affiliation with the #{name} at #{url}.",
+        "You received this message because of your affiliation with the #{name} at #{url}",
         "If you do not want to receive this messages any more, you may <a href=\"{{{ pm:unsubscribe }}}\">Unsubscribe from this list</a>.",
         "Please understand that unsubscribing means you will no longer receive mandatory messages and announcements."
       ].join(" ")
