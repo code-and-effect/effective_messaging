@@ -17,7 +17,10 @@ module Effective
       headers = headers_for(notification, opts)
 
       # Use postmark broadcast-stream
-      headers.merge!(message_stream: 'broadcast-stream') if defined?(Postmark)
+      if defined?(Postmark)
+        headers.merge!(message_stream: 'broadcast-stream') 
+        attach_unsubscribe_link!(rendered)
+      end
 
       # Calls effective_resources subject proc, so we can prepend [LETTERS]
       subject = subject_for(__method__, rendered.fetch(:subject), notification, opts)
@@ -39,7 +42,10 @@ module Effective
       headers = headers_for(notification, opts)
 
       # Use postmark broadcast-stream
-      headers.merge!(message_stream: 'broadcast-stream') if defined?(Postmark)
+      if defined?(Postmark)
+        headers.merge!(message_stream: 'broadcast-stream') 
+        attach_unsubscribe_link!(rendered)
+      end
 
       # Calls effective_resources subject proc, so we can prepend [LETTERS]
       subject = subject_for(__method__, rendered.fetch(:subject), resource, opts)
@@ -64,6 +70,25 @@ module Effective
         mime_type: datatable.csv_content_type,
         content: datatable.csv_file
       }
+    end
+
+    def attach_unsubscribe_link!(rendered)
+      raise('expected a Hash') unless rendered.kind_of?(Hash)
+      raise('expected a Hash with a :body') unless rendered.key?(:body)
+
+      name = EffectiveResources.et('acronym')
+      url = view_context.root_url
+
+      unsubscribe = [
+        "You received this message because of your affiliation with the #{name} at #{url}.",
+        "If you do not want to receive this messages any more, you may <a href=\"{{{ pm:unsubscribe }}}\">Unsubscribe from this list</a>.",
+        "Please understand that unsubscribing means you will no longer receive mandatory messages and announcements."
+      ].join(" ")
+
+      # Attach unsubscribe link
+      rendered[:body] = "#{rendered[:body]}\r\n\r\n<hr><small>#{unsubscribe}</small>"
+
+      rendered
     end
 
     def mailer_settings
