@@ -37,7 +37,7 @@ module Admin
       col :notifiable_tomorrow_rows_count, label: 'Tomorrow'
 
       col(:rows_count) do |notification|
-        notification.report.collection().count
+        notification.report&.collection()&.count.to_i
       end
 
       col :subject
