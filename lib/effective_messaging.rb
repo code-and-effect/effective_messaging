@@ -9,7 +9,6 @@ module EffectiveMessaging
     [
       :chats_table_name, :chat_users_table_name, :chat_messages_table_name, :notifications_table_name, :notification_logs_table_name,
       :layout,
-      :froms,
       :mailer, :parent_mailer, :deliver_method, :mailer_layout, :mailer_sender, :mailer_froms, :mailer_admin, :mailer_subject
     ]
   end
