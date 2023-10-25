@@ -83,7 +83,7 @@ module Effective
     scope :disabled, -> { where(enabled: false) }
 
     before_validation do
-      self.from ||= EffectiveMessaging.froms.first
+      self.from ||= EffectiveMessaging.mailer_froms.first
     end
 
     # Emails or Report

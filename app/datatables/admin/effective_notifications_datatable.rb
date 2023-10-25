@@ -43,7 +43,7 @@ module Admin
       col :subject
       col :body, visible: false
 
-      col :from, visible: false, search: Array(EffectiveMessaging.froms).presence
+      col :from, visible: false, search: EffectiveMessaging.mailer_froms
       col :cc, visible: false
       col :bcc, visible: false
 
