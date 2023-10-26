@@ -56,7 +56,8 @@
   %p The following email notification will be sent
 
   - f.object.from ||= EffectiveMessaging.mailer_froms.first
-  = f.select :from, EffectiveMessaging.mailer_froms
+  = f.select :from, mailer_froms_collection()
+
   = f.email_field :bcc
   = f.text_field :subject
   = f.text_area :body, rows: 20
