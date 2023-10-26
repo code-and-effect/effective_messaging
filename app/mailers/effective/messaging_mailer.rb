@@ -11,11 +11,7 @@ module Effective
       raise('expected user to have an email') unless user.try(:email).present?
 
       @assigns = chat_assigns(chat, user: user).merge(assigns_for(chat_user))
-
-      subject = subject_for(__method__, "New Message - #{chat}", chat, opts)
-      headers = headers_for(chat, opts)
-
-      mail(to: user.email, subject: subject, **headers)
+      mail(to: user.email, **headers_for(chat, opts))
     end
 
     protected

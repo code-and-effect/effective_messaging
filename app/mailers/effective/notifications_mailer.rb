@@ -2,6 +2,8 @@ module Effective
   class NotificationsMailer < EffectiveMessaging.parent_mailer_class
     include EffectiveMailer
 
+    # This is not an EffectiveEmailTemplatesMailer
+
     def notify(notification, opts = {})
       raise('expected an Effective::Notification') unless notification.kind_of?(Effective::Notification)
 
