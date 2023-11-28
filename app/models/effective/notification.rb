@@ -73,8 +73,13 @@ module Effective
       timestamps
     end
 
-    serialize :audience_emails, Array
-    serialize :scheduled_dates, Array
+    if EffectiveResources.serialize_with_coder?
+      serialize :audience_emails, type: Array, coder: YAML
+      serialize :scheduled_dates, type: Array, coder: YAML
+    else
+      serialize :audience_emails, Array
+      serialize :scheduled_dates, Array
+    end
 
     scope :sorted, -> { order(:id) }
     scope :deep, -> { includes(report: :report_columns) }
