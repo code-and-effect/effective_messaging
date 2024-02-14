@@ -280,14 +280,22 @@ module Effective
         next unless notifiable?(resource) || force
         print('.')
 
-        # For logging
-        assign_attributes(current_resource: resource)
+        begin
+          # For logging
+          assign_attributes(current_resource: resource)
 
-        # Send the resource email
-        build_notification_log(resource: resource).save!
-        Effective::NotificationsMailer.notify_resource(self, resource).deliver_now
+          # Send the resource email
+          Effective::NotificationsMailer.notify_resource(self, resource).deliver_now
 
-        notified += 1
+          # Log that it was sent
+          build_notification_log(resource: resource).save!
+
+          # Count how many we actually sent
+          notified += 1
+        rescue => e
+          EffectiveLogger.error(e.message, associated: self) if defined?(EffectiveLogger)
+          ExceptionNotifier.notify_exception(e, data: { notification_id: id, resource_id: resource.id, resource_type: resource.class.name }) if defined?(ExceptionNotifier)
+        end
 
         GC.start if (notified % 250) == 0
       end
@@ -299,9 +307,19 @@ module Effective
       notified = 0
 
       if notifiable_scheduled? || force
-        build_notification_log(resource: nil).save!
-        Effective::NotificationsMailer.notify(self).deliver_now
-        notified += 1
+        begin
+          Effective::NotificationsMailer.notify(self).deliver_now
+
+          # Log that it was sent
+          build_notification_log(resource: nil).save!
+
+          # Count how many we actually sent
+          notified += 1
+        rescue => e
+          EffectiveLogger.error(e.message, associated: self) if defined?(EffectiveLogger)
+          ExceptionNotifier.notify_exception(e, data: { notification_id: id }) if defined?(ExceptionNotifier)
+        end
+
       end
 
       notified > 0 ? update!(last_notified_at: Time.zone.now, last_notified_count: notified) : touch
