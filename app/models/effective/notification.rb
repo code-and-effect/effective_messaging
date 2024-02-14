@@ -278,6 +278,10 @@ module Effective
 
       report.collection().find_each do |resource|
         next unless notifiable?(resource) || force
+
+        # Send Now functionality. Don't duplicate if it's same day.
+        next if force && already_notified_today?(resource)
+
         print('.')
 
         begin
@@ -340,6 +344,17 @@ module Effective
     def notifiable_tomorrow?(resource)
       date = Time.zone.now.beginning_of_day.advance(days: 1)
       notifiable?(resource, date: date)
+    end
+
+    def already_notified_today?(resource)
+      email = resource_email(resource) || resource_user(resource).try(:email)
+      raise("expected an email for #{report} #{report&.id} and #{resource} #{resource&.id}") unless email.present?
+
+      logs = notification_logs.select { |log| log.email == email }
+      return false if logs.count == 0
+
+      # If we already notified today
+      logs.any? { |log| log.created_at&.beginning_of_day == Time.zone.now.beginning_of_day }
     end
 
     # Consider the notification logs which track how many and how long ago this notification was sent
