@@ -15,7 +15,13 @@ class EffectiveChatsDatatable < Effective::Datatable
   end
 
   collection do
-    Effective::Chat.deep.where(id: current_user.chats)
+    chats = Effective::Chat.deep.where(id: current_user.chats)
+
+    if attributes[:year].present?
+      chats = chats.where('created_at >= ?', Time.zone.local(attributes[:year]))
+    end
+
+    chats
   end
 
 end

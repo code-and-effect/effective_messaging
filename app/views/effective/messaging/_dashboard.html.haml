@@ -1,10 +1,9 @@
 %h2= t('effective_messaging.dashboard')
 
-- if current_user.chats.present?
-  %p You are a #{etd(Effective::ChatUser)} of #{pluralize(current_user.chats.length, etd(Effective::Chat))}.
+- datatable = EffectiveResources.best('EffectiveChatsDatatable').new(self, namespace: :effective)
 
-  - datatable = EffectiveResources.best('EffectiveChatsDatatable').new(self, namespace: :effective)
+- if datatable.present?
+  %p You are a #{etd(Effective::ChatUser)} of #{pluralize(datatable.collection.length, etd(Effective::Chat))}.
   = render_datatable(datatable, simple: true)
-
 - else
   %p You haven't received any #{etsd(Effective::ChatMessage)}. When you do, we'll show it here.
