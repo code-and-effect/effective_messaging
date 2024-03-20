@@ -1,6 +1,6 @@
 %h2= t('effective_messaging.dashboard')
 
-- datatable = EffectiveResources.best('EffectiveChatsDatatable').new(self, namespace: :effective)
+- datatable = EffectiveResources.best('EffectiveChatsDatatable').new(self, namespace: :effective, year: local_assigns[:year])
 
 - if datatable.present?
   %p You are a #{etd(Effective::ChatUser)} of #{pluralize(datatable.collection.length, etd(Effective::Chat))}.
