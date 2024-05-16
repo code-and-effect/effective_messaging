@@ -35,7 +35,13 @@ module Effective
     validates :body, presence: true
 
     def to_s
-      body.presence || 'New Chat Message'
+      truncate(body.presence || 'New Chat Message')
+    end
+
+    private
+
+    def truncate(value)
+      value.length > 100 ? (value.first(100) + '...') : value
     end
 
   end

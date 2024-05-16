@@ -12,7 +12,7 @@ EffectiveMessaging::Engine.routes.draw do
 
   namespace :admin do
     resources :chats
-    resources :chat_messages, only: [:index, :show, :destroy]
+    resources :chat_messages, except: [:new, :create]
 
     resources :notifications do
       post :enable, on: :member

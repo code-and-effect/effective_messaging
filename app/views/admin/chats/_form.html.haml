@@ -3,6 +3,9 @@
     = render 'admin/chats/form_chat', chat: chat
 
   - if chat.persisted?
+    = tab(chat.chat_messages) do
+      = render_inline_datatable(Admin::EffectiveChatMessagesDatatable.new(chat: chat))
+
     - if chat.respond_to?(:logs_datatable)
       = tab "Logs" do
         = render_inline_datatable(chat.logs_datatable)

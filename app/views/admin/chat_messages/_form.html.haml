@@ -1,0 +1,9 @@
+= effective_form_with(model: [:admin, chat_message], engine: true) do |f|
+  - unless inline_datatable?
+    = f.static_field :chat, label: et(f.object.chat)
+
+  = f.static_field :name, label: 'From'
+  = f.text_area :body
+
+  = f.submit 'Save'
+
