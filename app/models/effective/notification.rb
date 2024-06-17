@@ -134,7 +134,7 @@ module Effective
     validates :report, presence: true
 
     validate(if: -> { report.present? }) do
-      errors.add(:report, 'must include an email or user column') unless report.email_report_column || report.user_report_column
+      errors.add(:report, 'must include an email, user, organization or owner column') unless report.email_report_column || report.emailable_report_column
     end
 
     validate(if: -> { report.present? && subject.present? }) do
@@ -347,7 +347,7 @@ module Effective
     end
 
     def already_notified_today?(resource)
-      email = resource_email(resource) || resource_user(resource).try(:email)
+      email = resource_emails_to_s(resource)
       raise("expected an email for #{report} #{report&.id} and #{resource} #{resource&.id}") unless email.present?
 
       logs = notification_logs.select { |log| log.email == email }
@@ -362,7 +362,7 @@ module Effective
     def notifiable_immediate?(resource:, date: nil)
       raise('expected an immediate? notification') unless immediate?
 
-      email = resource_email(resource) || resource_user(resource).try(:email)
+      email = resource_emails_to_s(resource)
       raise("expected an email for #{report} #{report&.id} and #{resource} #{resource&.id}") unless email.present?
 
       logs = notification_logs.select { |log| log.email == email }
@@ -394,12 +394,7 @@ module Effective
     def render_email(resource = nil)
       raise('expected an acts_as_reportable resource') if resource.present? && !resource.class.try(:acts_as_reportable?)
 
-      to = if audience == 'emails'
-        audience_emails.presence
-      elsif audience == 'report'
-        resource_email(resource) || resource_user(resource).try(:email)
-      end
-
+      to = (audience == 'emails' ? audience_emails.presence : resource_emails_to_s(resource))
       raise('expected a to email address') unless to.present?
 
       assigns = assigns_for(resource)
@@ -437,12 +432,12 @@ module Effective
     end
 
     def build_notification_log(resource: nil, skipped: false)
-      user = resource_user(resource)
+      emailable = resource_emailable(resource)
 
-      email = resource_email(resource) || user.try(:email)
+      email = resource_emails_to_s(resource)
       email ||= audience_emails_to_s if scheduled_email?
 
-      notification_logs.build(email: email, report: report, resource: resource, user: user, skipped: skipped)
+      notification_logs.build(email: email, report: report, resource: resource, user: emailable, skipped: skipped)
     end
 
     private
@@ -456,18 +451,31 @@ module Effective
     end
 
     def audience_emails_to_s
-      audience_emails.presence&.join(',')
+      audience_emails.presence&.join(', ')
     end
 
-    def resource_user(resource)
+    # All emails for this emailable resource
+    def resource_emails_to_s(resource)
+      emails = Array(resource_email(resource)).map(&:presence).compact
+
+      if emails.blank? && (emailable = resource_emailable(resource)).present?
+        emails = Array(emailable.try(:reportable_emails) || emailable.try(:email)).map(&:presence).compact
+      end
+
+      emails.presence&.join(', ')
+    end
+
+    # A user, owner, or organization column
+    def resource_emailable(resource)
       return unless resource.present?
 
-      column = report&.user_report_column
+      column = report&.emailable_report_column
       return unless column.present?
 
       resource.public_send(column.name) || (resource if resource.respond_to?(:email))
     end
 
+    # An email column
     def resource_email(resource)
       return unless resource.present?
 

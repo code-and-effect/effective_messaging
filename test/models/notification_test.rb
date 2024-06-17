@@ -1,4 +1,5 @@
 require 'test_helper'
+require 'timecop'
 
 class NotificationTest < ActiveSupport::TestCase
   test 'report notification sends many emails to users' do
