@@ -135,7 +135,7 @@ GEM
       effective_resources
       liquid
       rails
-    effective_reports (0.4.6)
+    effective_reports (0.4.7)
       effective_bootstrap
       effective_datatables (>= 4.0.0)
       effective_resources
