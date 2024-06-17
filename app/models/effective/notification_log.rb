@@ -20,7 +20,7 @@ module Effective
     scope :sorted, -> { order(:id) }
     scope :deep, -> { includes(:notification, :report, :resource, :user) }
 
-    validates :email, presence: true, email: true
+    validates :email, presence: true
 
     def to_s
       model_name.human

@@ -9,7 +9,7 @@ module Admin
       col :notification
       col :report, visible: !attributes[:inline]
       col :resource, search: :string
-      col :user, search: :string
+      col :user, label: 'Source', search: :string
       col :email
       col :skipped
 
