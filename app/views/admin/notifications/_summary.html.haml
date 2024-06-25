@@ -14,36 +14,48 @@
     %h4= notification.report.to_s
     = render 'admin/reports/report', report: notification.report
 
-- if notification.rows_count > 0
-  %p Using a random row from the data source, a preview of the notification follows:
+- message = notification.preview()
+
+- if message.present?
+  - if notification.audience_emails?
+    %p A preview of the "Send to specific addresses" notification follows:
+  - else
+    %p Using a random row from the data source, a preview of the "Send to user or email from the report" notification follows:
 
   = card('Preview') do
-    - resource = notification.report.collection.order('RANDOM()').first
-    - rendered = notification.assign_renderer(self).render_email(resource)
+    - message = notification.preview()
 
     %table.table
       %tbody
         %tr
           %th To
-          %td= rendered.fetch(:to)
+          %td= Array(message.to).join(', ')
         %tr
           %th From
-          %td= rendered.fetch(:from)
+          %td= Array(message.from).join(', ')
+          
+        - if (content_type = message.content_type).present?
+          %tr
+            %th Content-Type
+            %td= content_type
 
-        - if (cc = rendered[:cc]).present?
+        - if (cc = message.cc).present?
           %tr
             %th CC
             %td= cc
 
-        - if (bcc = rendered[:bcc]).present?
+        - if (bcc = message.bcc).present?
           %tr
             %th BCC
             %td= bcc
 
         %tr
           %th Subject
-          %td= rendered.fetch(:subject)
+          %td= message.subject
 
         %tr
           %td{colspan: 2}
-            = simple_format(rendered.fetch(:body).to_s)
+            - if email_message_html?(message)
+              = iframe_srcdoc_tag(email_message_body(message))
+            - else
+              = simple_format(email_message_body(message))

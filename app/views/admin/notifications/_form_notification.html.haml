@@ -1,7 +1,11 @@
 = effective_form_with(model: [:admin, notification], engine: true) do |f|
   %h2 Audience
   %p Please select who the notifications should be sent to
-  = f.radios :audience, Effective::Notification::AUDIENCES, label: false, buttons: true
+
+  = f.radios :audience, Effective::Notification::AUDIENCES, label: false, buttons: true,
+    'data-load-ajax-url': effective_messaging.new_admin_notification_path,
+    'data-load-ajax-div': '#effective-messaging-ajax',
+    'data-load-ajax-all': true
 
   = f.show_if(:audience, 'report') do
     %p The notification will be sent to the user or email from the report.
@@ -46,29 +50,30 @@
       = f.select :report_id, Effective::Report.sorted.notifiable.all,
         hint: "Please select a #{link_to 'report', effective_reports.admin_reports_path, target: '_blank'} with a user or email column to use as the data source",
         'data-load-ajax-url': effective_messaging.new_admin_notification_path,
-        'data-load-ajax-div': '#effective-messaging-ajax'
+        'data-load-ajax-div': '#effective-messaging-ajax',
+        'data-load-ajax-all': true
 
   = f.show_if(:audience, 'emails') do
     = f.show_if(:schedule_type, 'scheduled') do
       = f.check_box :attach_report, label: 'Yes, attach a .csv file with the report data', hint: 'only available to scheduled emails sent to specific addresses'
 
+  = f.show_if(:audience, 'report') do
+    = f.hidden_field :attach_report, value: false
+
   %h2 Notification
-  %p The following email notification will be sent
-
-  - f.object.from ||= EffectiveMessaging.mailer_froms.first
-  = f.select :from, mailer_froms_collection()
-
-  = f.email_field :bcc
-  = f.text_field :subject
-  = f.text_area :body, rows: 20
+  = email_notification_fields(f, :notification)
 
   #effective-messaging-ajax
     - if f.object.report.present?
-      %p You can use the following variables in the subject and body:
+      = card do
+        - if f.object.audience == 'report'
+          %p You can use the following variables in the subject and body:
 
-      %ul
-        - f.object.report_variables.each do |name|
-          %li {{ #{name} }}
+          %ul
+            - f.object.email_template_variables.each do |name|
+              %li {{ #{name} }}
+        - elsif f.object.audience == 'emails'
+          %p No variables available for Send to specific address audience.
 
   = f.submit do
     = f.save 'Save'

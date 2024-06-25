@@ -10,6 +10,7 @@ require 'devise'
 require 'haml'
 require 'effective_email_templates'
 require 'effective_reports'
+require 'effective_test_bot'
 
 module Dummy
   class Application < Rails::Application

@@ -25,6 +25,7 @@ require 'pry-byebug'
 class ActiveSupport::TestCase
   include Warden::Test::Helpers
 
+  include EffectiveTestBot::DSL
   include EffectiveMessagingTestBuilder
   include EffectiveMessagingTestHelper
 end

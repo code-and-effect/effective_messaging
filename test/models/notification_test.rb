@@ -144,19 +144,57 @@ class NotificationTest < ActiveSupport::TestCase
     end
   end
 
-  test 'notification renders email' do
+  test 'notification previews email' do
     notification = build_immediate_report_notification()
-    user = build_user()
+    user = create_user!()
 
-    rendered = notification.render_email(user)
+    assert_equal 1, notification.rows_count
 
-    assert_equal user.email, rendered[:to]
+    message = notification.preview()
 
-    assert rendered[:subject].to_s.include?(user.first_name)
-    assert rendered[:subject].to_s.include?(user.last_name)
+    assert_equal user.email, message.to.first
 
-    assert rendered[:body].to_s.include?(user.first_name)
-    assert rendered[:body].to_s.include?(user.last_name)
+    assert message.subject.to_s.include?(user.first_name)
+    assert message.subject.to_s.include?(user.last_name)
+
+    assert message.body.to_s.include?(user.first_name)
+    assert message.body.to_s.include?(user.last_name)
+  end
+
+  test 'report notification with html email' do
+    template = Effective::EmailTemplate.where(template_name: :notification).first!
+    template.save_as_html!
+
+    notification = build_immediate_report_notification()
+
+    notification.update!(
+      body: '<p>Hello {{ first_name }} {{ last_name }}</p>',
+      content_type: 'text/html'
+    )
+
+    users = 5.times.map { create_user!() }
+
+    assert_equal 0, notification.notification_logs.count
+    assert_equal 5, notification.rows_count
+
+    assert_email(count: 5, html_layout: true) { notification.notify! }
+
+    assert_equal 5, notification.notification_logs.count
+    assert_equal 5, notification.last_notified_count
+    assert_equal Time.zone.now.beginning_of_day, notification.last_notified_at.beginning_of_day
+
+    mails = ActionMailer::Base.deliveries.last(5)
+    assert_equal 5, mails.length
+
+    mails.each do |message|
+      html_body = message.parts.find { |part| part.content_type.start_with?('text/html') }
+      assert html_body.present?
+    end
+
+    users.each do |user|
+      assert notification.notification_logs.find { |log| log.email == user.email }.present?
+      assert mails.find { |mail| mail.to.join(',') == user.email }.present?
+    end
   end
 
 end

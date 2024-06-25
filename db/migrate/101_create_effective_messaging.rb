@@ -69,6 +69,7 @@ class CreateEffectiveMessaging < ActiveRecord::Migration[6.0]
       t.string :from
       t.string :cc
       t.string :bcc
+      t.string :content_type
 
       t.datetime :last_notified_at
       t.integer :last_notified_count

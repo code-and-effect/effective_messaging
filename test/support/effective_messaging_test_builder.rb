@@ -13,6 +13,7 @@ module EffectiveMessagingTestBuilder
       from: 'noreply@example.com',
       subject: "Hello {{ first_name }} {{ last_name }}",
       body: "Body {{ first_name }} {{ last_name }}",
+      content_type: 'text/plain'
     )
   end
 
@@ -28,6 +29,7 @@ module EffectiveMessagingTestBuilder
       from: 'noreply@example.com',
       subject: "Hello {{ first_name }} {{ last_name }}",
       body: "Body {{ first_name }} {{ last_name }}",
+      content_type: 'text/plain'
     )
   end
 
@@ -47,6 +49,7 @@ module EffectiveMessagingTestBuilder
       from: 'noreply@example.com',
       subject: "Hello {{ first_name }} {{ last_name }}",
       body: "Body {{ first_name }} {{ last_name }}",
+      content_type: 'text/plain'
     )
   end
 
@@ -64,6 +67,7 @@ module EffectiveMessagingTestBuilder
       from: 'noreply@example.com',
       subject: "Hello {{ first_name }} {{ last_name }}",
       body: "Body {{ first_name }} {{ last_name }}",
+      content_type: 'text/plain'
     )
   end
 

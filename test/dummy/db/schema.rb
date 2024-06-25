@@ -128,6 +128,7 @@ ActiveRecord::Schema.define(version: 101) do
     t.string "from"
     t.string "cc"
     t.string "bcc"
+    t.string "content_type"
     t.datetime "last_notified_at"
     t.integer "last_notified_count"
     t.datetime "created_at", precision: 6, null: false
