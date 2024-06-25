@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# This could be called ReportNotification. It only sends notifications for effective_reports right now.
+
 module Effective
   class Notification < ActiveRecord::Base
     self.table_name = (EffectiveMessaging.notifications_table_name || :notifications).to_s
@@ -8,6 +10,7 @@ module Effective
     attr_accessor :current_resource
     attr_accessor :view_context
 
+    acts_as_email_notification # effective_resources
     log_changes if respond_to?(:log_changes)
 
     # Unused. If we want to use notifications in a has_many way
@@ -17,7 +20,7 @@ module Effective
     belongs_to :user, polymorphic: true, optional: true
 
     # Effective namespace
-    belongs_to :report, class_name: 'Effective::Report', optional: true
+    belongs_to :report, class_name: 'Effective::Report'
 
     # Tracks the send outs
     has_many :notification_logs, dependent: :delete_all
@@ -65,6 +68,7 @@ module Effective
       from              :string
       cc                :string
       bcc               :string
+      content_type      :string
 
       # Background tracking
       last_notified_at      :datetime
@@ -108,7 +112,7 @@ module Effective
     end
 
     validate(if: -> { immediate? && immediate_days.present? && immediate_times.present? }) do
-      self.errors.add(:immediate_times, "must be 1 when when using every 0 days") if immediate_days == 0 && immediate_times != 1
+      errors.add(:immediate_times, "must be 1 when when using every 0 days") if immediate_days == 0 && immediate_times != 1
     end
 
     # Scheduled
@@ -125,28 +129,8 @@ module Effective
       end
     end
 
-    # Email
-    validates :from, presence: true, email: true
-    validates :subject, presence: true, liquid: true
-    validates :body, presence: true, liquid: true
-
-    # Report
-    validates :report, presence: true
-
     validate(if: -> { report.present? }) do
       errors.add(:report, 'must include an email, user, organization or owner column') unless report.email_report_column || report.emailable_report_column
-    end
-
-    validate(if: -> { report.present? && subject.present? }) do
-      if(invalid = template_variables(body: false) - report_variables).present?
-        errors.add(:subject, "Invalid variable: #{invalid.to_sentence}")
-      end
-    end
-
-    validate(if: -> { report.present? && body.present? }) do
-      if(invalid = template_variables(subject: false) - report_variables).present?
-        errors.add(:body, "Invalid variable: #{invalid.to_sentence}")
-      end
     end
 
     def to_s
@@ -195,15 +179,11 @@ module Effective
       Array(self[:scheduled_dates]) - [nil, '']
     end
 
-    def template_subject
-      Liquid::Template.parse(subject)
+    def email_template
+      :notification # We always use this email template
     end
 
-    def template_body
-      Liquid::Template.parse(body)
-    end
-
-    def report_variables
+    def email_template_variables
       assigns_for().keys
     end
 
@@ -272,6 +252,20 @@ module Effective
       scheduled_email? ? notify_by_schedule!(force: force) : notify_by_resources!(force: force)
     end
 
+    # Returns a message. Do not call deliver.
+    def preview
+      return unless report.present?
+
+      if audience_emails?
+        # notify_by_schedule
+        Effective::NotificationsMailer.notification(self, nil, email_notification_params) 
+      else
+        # notify_by_resources
+        resource = report.collection.order('RANDOM()').first
+        Effective::NotificationsMailer.notification(self, resource, email_notification_params) if resource
+      end
+    end
+
     # Operates on every resource in the data source. Sends one email for each row
     def notify_by_resources!(force: false)
       notified = 0
@@ -280,7 +274,7 @@ module Effective
         next unless notifiable?(resource) || force
 
         # Send Now functionality. Don't duplicate if it's same day.
-        next if force && already_notified_today?(resource)
+        next if already_notified_today?(resource) && !force
 
         print('.')
 
@@ -289,7 +283,7 @@ module Effective
           assign_attributes(current_resource: resource)
 
           # Send the resource email
-          Effective::NotificationsMailer.notify_resource(self, resource).deliver_now
+          Effective::NotificationsMailer.notification(self, resource, email_notification_params).deliver_now
 
           # Log that it was sent
           build_notification_log(resource: resource).save!
@@ -299,6 +293,7 @@ module Effective
         rescue => e
           EffectiveLogger.error(e.message, associated: self) if defined?(EffectiveLogger)
           ExceptionNotifier.notify_exception(e, data: { notification_id: id, resource_id: resource.id, resource_type: resource.class.name }) if defined?(ExceptionNotifier)
+          raise(e) if Rails.env.test? || Rails.env.development?
         end
 
         GC.start if (notified % 250) == 0
@@ -312,7 +307,7 @@ module Effective
 
       if notifiable_scheduled? || force
         begin
-          Effective::NotificationsMailer.notify(self).deliver_now
+          Effective::NotificationsMailer.notification(self, nil, email_notification_params).deliver_now
 
           # Log that it was sent
           build_notification_log(resource: nil).save!
@@ -322,6 +317,7 @@ module Effective
         rescue => e
           EffectiveLogger.error(e.message, associated: self) if defined?(EffectiveLogger)
           ExceptionNotifier.notify_exception(e, data: { notification_id: id }) if defined?(ExceptionNotifier)
+          raise(e) if Rails.env.test? || Rails.env.development?
         end
 
       end
@@ -391,26 +387,11 @@ module Effective
       end
     end
 
-    def render_email(resource = nil)
-      raise('expected an acts_as_reportable resource') if resource.present? && !resource.class.try(:acts_as_reportable?)
-
-      to = (audience == 'emails' ? audience_emails.presence : resource_emails_to_s(resource))
-      raise('expected a to email address') unless to.present?
-
-      assigns = assigns_for(resource)
-
-      {
-        to: to,
-        from: from,
-        cc: cc.presence,
-        bcc: bcc.presence,
-        content_type: CONTENT_TYPES.first,
-        subject: template_subject.render(assigns),
-        body: template_body.render(assigns)
-      }.compact
+    def to_email(resource)
+      audience == 'emails' ? audience_emails.presence : resource_emails_to_s(resource)
     end
 
-    # We pull the Assigns from 3 places:
+    # We pull the Assigns from 2 places:
     # 1. The report.report_columns
     # 2. The class's def reportable_view_assigns(view) method
     def assigns_for(resource = nil)
@@ -427,7 +408,7 @@ module Effective
       reportable_view_assigns = resource.reportable_view_assigns(renderer).deep_stringify_keys
       raise('expected notification assigns to return a Hash') unless reportable_view_assigns.kind_of?(Hash)
 
-      # Merge all 3
+      # Merge all assigns
       report_assigns.merge(reportable_view_assigns)
     end
 
@@ -441,14 +422,6 @@ module Effective
     end
 
     private
-
-    def template_variables(body: true, subject: true)
-      [(template_body.presence if body), (template_subject.presence if subject)].compact.map do |template|
-        Liquid::ParseTreeVisitor.for(template.root).add_callback_for(Liquid::VariableLookup) do |node|
-          [node.name, *node.lookups].join('.')
-        end.visit
-      end.flatten.uniq.compact
-    end
 
     def audience_emails_to_s
       audience_emails.presence&.join(', ')

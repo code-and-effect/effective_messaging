@@ -1,62 +1,35 @@
 module Effective
   class NotificationsMailer < EffectiveMessaging.parent_mailer_class
     include EffectiveMailer
+    include EffectiveEmailTemplatesMailer
 
-    # This is not an EffectiveEmailTemplatesMailer
-
-    def notify(notification, opts = {})
+    def notification(notification, resource = nil, opts = {})
       raise('expected an Effective::Notification') unless notification.kind_of?(Effective::Notification)
 
-      # Returns a Hash of params to pass to mail()
-      # Includes a :to, :from, :subject and :body, etc
-      rendered = notification.assign_renderer(view_context).render_email
+      @assigns = assigns_for(notification, resource)
+
+      # Find the TO email address for this resource
+      to = notification.to_email(resource)
+      raise('expected a to email address') unless to.present?
 
       # Attach report
       attach_report!(notification)
-      rendered.delete(:content_type) if notification.attach_report?
-
-      # Works with effective_logging to associate this email with the notification
-      headers = headers_for(notification, opts)
+      opts.delete(:content_type) if notification.attach_report?
 
       # Use postmark broadcast-stream
       if defined?(Postmark)
-        headers.merge!(message_stream: 'broadcast-stream') 
-        attach_unsubscribe_link!(rendered)
+        opts.merge!(message_stream: 'broadcast-stream') 
+        append_unsubscribe_link!(notification, opts)
       end
 
-      # Calls effective_resources subject proc, so we can prepend [LETTERS]
-      subject = subject_for(__method__, rendered.fetch(:subject), notification, opts)
-
-      # Pass everything to mail
-      mail(rendered.merge(headers).merge(subject: subject))
-    end
-
-    # Does not use effective_email_templates mailer
-    def notify_resource(notification, resource, opts = {})
-      raise('expected an Effective::Notification') unless notification.kind_of?(Effective::Notification)
-      raise('expected an acts_as_reportable resource') unless resource.class.try(:acts_as_reportable?)
-
-      # Returns a Hash of params to pass to mail()
-      # Includes a :to, :from, :subject and :body
-      rendered = notification.assign_renderer(view_context).render_email(resource)
-
-      # Works with effective_logging to associate this email with the notification
-      headers = headers_for(notification, opts)
-
-      # Use postmark broadcast-stream
-      if defined?(Postmark)
-        headers.merge!(message_stream: 'broadcast-stream') 
-        attach_unsubscribe_link!(rendered)
-      end
-
-      # Calls effective_resources subject proc, so we can prepend [LETTERS]
-      subject = subject_for(__method__, rendered.fetch(:subject), resource, opts)
-
-      # Pass everything to mail
-      mail(rendered.merge(headers).merge(subject: subject))
+      mail(to: to, **headers_for(resource, opts))
     end
 
     private
+
+    def assigns_for(notification, resource)
+      notification.assign_renderer(view_context).assigns_for(resource)
+    end
 
     def attach_report!(notification)
       return unless notification.attach_report?
@@ -74,9 +47,9 @@ module Effective
       }
     end
 
-    def attach_unsubscribe_link!(rendered)
-      raise('expected a Hash') unless rendered.kind_of?(Hash)
-      raise('expected a Hash with a :body') unless rendered.key?(:body)
+    def append_unsubscribe_link!(notification, opts)
+      raise('expected a Hash') unless opts.kind_of?(Hash)
+      raise('expected a Hash with a :body') unless opts.key?(:body)
 
       name = EffectiveResources.et('acronym')
       url = view_context.root_url
@@ -87,10 +60,13 @@ module Effective
         "Please understand that unsubscribing means you will no longer receive mandatory messages and announcements."
       ].join(" ")
 
-      # Attach unsubscribe link
-      rendered[:body] = "#{rendered[:body]}\r\n\r\n#{unsubscribe}"
+      if notification.email_notification_html?
+        opts.merge!(body: "#{opts[:body]}\r\n<br/><p>#{unsubscribe}</p>")
+      else
+        opts.merge!(body: "#{opts[:body]}\r\n\r\n#{unsubscribe}")
+      end
 
-      rendered
+      true
     end
 
     def mailer_settings
