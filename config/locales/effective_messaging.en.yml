@@ -10,3 +10,4 @@ en:
       effective/chat: 'Chat'
       effective/chat_user: 'Chat Participant'
       effective/chat_message: 'Chat Message'
+      effective/notification: 'Scheduled Email'
