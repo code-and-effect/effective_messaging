@@ -18,7 +18,7 @@ module Effective
 
       # Use postmark broadcast-stream
       if defined?(Postmark)
-        opts.merge!(message_stream: 'broadcast-stream') 
+        opts.merge!(message_stream: 'broadcast-stream')
         append_unsubscribe_link!(notification, opts)
       end
 
@@ -60,9 +60,8 @@ module Effective
         "Please understand that unsubscribing means you will no longer receive mandatory messages and announcements."
       ].join(" ")
 
-      if notification.email_notification_html?
-        opts.merge!(body: "#{opts[:body]}\r\n<br/><p>#{unsubscribe}</p>")
-      else
+      # Email templates have the unsubscribe link in the footer already
+      unless notification.email_notification_html?
         opts.merge!(body: "#{opts[:body]}\r\n\r\n#{unsubscribe}")
       end
 
