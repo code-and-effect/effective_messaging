@@ -15,7 +15,8 @@
 
     opened
     = time_ago_in_words(chat.created_at)
-    ago
+    ago on
+    = chat.created_at.strftime('%F')
 
   = succeed('.') do
     = pluralize(chat.chat_messages_count, etd(chat.chat_messages))
