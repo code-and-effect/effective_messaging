@@ -166,7 +166,6 @@ module Effective
     end
 
     # Only scheduled emails can have attached reports.
-    # Only scheduled emails can do Send Now
     def scheduled_email?
       scheduled? && audience_emails?
     end
@@ -359,7 +358,7 @@ module Effective
       raise('expected an immediate? notification') unless immediate?
 
       email = resource_emails_to_s(resource)
-      raise("expected an email for #{report} #{report&.id} and #{resource} #{resource&.id}") unless email.present?
+      return false if email.blank?
 
       logs = notification_logs.select { |log| log.email == email }
 
