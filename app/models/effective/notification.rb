@@ -86,7 +86,7 @@ module Effective
     end
 
     scope :sorted, -> { order(:id) }
-    scope :deep, -> { includes(report: :report_columns) }
+    scope :deep, -> { includes(report: [:report_columns, :report_scopes, :notifications]) }
 
     scope :enabled, -> { where(enabled: true) }
     scope :disabled, -> { where(enabled: false) }
