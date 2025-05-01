@@ -1,22 +1,14 @@
 - current_chat_user = chat.chat_user(user: current_user)
 - chat_users_count = chat.chat_users.count
 
+- if chat.anonymous?
+  .alert.alert-danger.my-4
+    This is an anonymous #{etd(chat)}.
+    %strong Do not reveal any potentially personally identifying information
+    like your name or employer.
+
 %p
-  - if chat.anonymous?
-    = badges('anonymous')
+  This #{etd(chat)} includes:
 
-  = succeed('.') do
-    A #{etd(chat)} with
-
-    - if current_chat_user.present? && chat_users_count < 5
-      = (chat.chat_users - [current_chat_user]).map(&:name).to_sentence
-    - else
-      = pluralize(chat_users_count, etd(chat.chat_users))
-
-    opened
-    = time_ago_in_words(chat.created_at)
-    ago on
-    = chat.created_at.strftime('%F')
-
-  = succeed('.') do
-    = pluralize(chat.chat_messages_count, etd(chat.chat_messages))
+  - if current_chat_user.present? && chat_users_count
+    = (chat.chat_users).map(&:name).to_sentence

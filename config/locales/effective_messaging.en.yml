@@ -3,7 +3,7 @@ en:
     name: 'Effective Messaging'
     acronym: 'Messaging'
     dashboard: 'Chat Messages'
-    send: 'Send Message'
+    send: 'Send'
 
   activerecord:
     models:
