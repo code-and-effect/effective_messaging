@@ -6,22 +6,13 @@
   = render('effective/chats/summary', chat: chat)
   = render(partial: 'effective/chats/chat_message', collection: chat.chat_messages, chat: chat)
 
-  - if chat.chat_messages.blank?
-    %p There are no #{etsd(chat.chat_messages)} so far. Please send one!
-
-  %hr
-
   - chat_message = chat.build_chat_message(user: current_user)
   - chat_user = chat.chat_user(user: current_user)
 
   .card
-    .card-header.bg-secondary
-      = et('effective_messaging.send')
-    .card-body
-      %p Your name is displayed as <strong>#{chat_user.name}</strong>
-
+    .card-body.pb-0
       = f.fields_for :chat_messages, chat_message do |fcm|
         - # The user and name are set by controller's current_user
-        = fcm.text_area :body, required: true, label: 'Send a message...'
+        = fcm.text_area :body, required: true, label: 'Message'
 
-      = f.submit et('effective_messaging.send')
+      = f.submit et('effective_messaging.send'), border: false

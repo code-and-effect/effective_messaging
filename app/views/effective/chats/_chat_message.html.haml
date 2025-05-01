@@ -1,8 +1,9 @@
 .effective-chat-message
   .card
     .card-header
-      %strong= chat_message.name
-      commented on
-      = chat_message.created_at.strftime('%F %T')
+      .row
+        .col
+          %strong= chat_message.name
+        .col.text-right= chat_message.created_at.strftime("%b %e, %Y %k:%M")
     .card-body
       = simple_format(chat_message.body)
