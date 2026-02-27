@@ -291,7 +291,7 @@ module Effective
           notified += 1
         rescue => e
           EffectiveLogger.error(e.message, associated: self) if defined?(EffectiveLogger)
-          ExceptionNotifier.notify_exception(e, data: { notification_id: id, resource_id: resource.id, resource_type: resource.class.name }) if defined?(ExceptionNotifier)
+          EffectiveResources.send_error(e, notification_id: id, resource_id: resource.id, resource_type: resource.class.name)
           raise(e) if Rails.env.test? || Rails.env.development?
         end
 
@@ -315,7 +315,7 @@ module Effective
           notified += 1
         rescue => e
           EffectiveLogger.error(e.message, associated: self) if defined?(EffectiveLogger)
-          ExceptionNotifier.notify_exception(e, data: { notification_id: id }) if defined?(ExceptionNotifier)
+          EffectiveResources.send_error(e, notification_id: id)
           raise(e) if Rails.env.test? || Rails.env.development?
         end
 

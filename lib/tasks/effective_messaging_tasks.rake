@@ -15,8 +15,7 @@ namespace :effective_messaging do
           notification.notify!
           Rails.logger.info "Sent notifications for #{notification} and #{notification.report}"
         rescue StandardError => e
-          data = { notification_id: notification.id, report_id: notification.report_id, resource_id: notification.current_resource&.id }
-          ExceptionNotifier.notify_exception(e, data: data) if defined?(ExceptionNotifier)
+          EffectiveResources.send_error(e, notification_id: notification.id, report_id: notification.report_id, resource_id: notification.current_resource&.id)
           puts "Error with effective_messaging #{notification.id} resource #{notification.current_resource&.id}: #{notification.errors.inspect}"
         end
       end
