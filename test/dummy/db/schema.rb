@@ -10,37 +10,36 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 101) do
-
+ActiveRecord::Schema[8.1].define(version: 101) do
   create_table "action_text_rich_texts", force: :cascade do |t|
-    t.string "name", null: false
     t.text "body"
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.integer "record_id", null: false
     t.string "record_type", null: false
-    t.bigint "record_id", null: false
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "updated_at", null: false
     t.index ["record_type", "record_id", "name"], name: "index_action_text_rich_texts_uniqueness", unique: true
   end
 
   create_table "active_storage_attachments", force: :cascade do |t|
-    t.string "name", null: false
-    t.string "record_type", null: false
-    t.integer "record_id", null: false
     t.integer "blob_id", null: false
-    t.datetime "created_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.string "name", null: false
+    t.integer "record_id", null: false
+    t.string "record_type", null: false
     t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
     t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
   end
 
   create_table "active_storage_blobs", force: :cascade do |t|
-    t.string "key", null: false
-    t.string "filename", null: false
-    t.string "content_type"
-    t.text "metadata"
-    t.string "service_name", null: false
     t.bigint "byte_size", null: false
     t.string "checksum", null: false
-    t.datetime "created_at", null: false
+    t.string "content_type"
+    t.datetime "created_at", precision: nil, null: false
+    t.string "filename", null: false
+    t.string "key", null: false
+    t.text "metadata"
+    t.string "service_name", null: false
     t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
   end
 
@@ -51,97 +50,99 @@ ActiveRecord::Schema.define(version: 101) do
   end
 
   create_table "chat_messages", force: :cascade do |t|
+    t.text "body"
     t.integer "chat_id"
     t.integer "chat_user_id"
+    t.datetime "created_at", null: false
+    t.string "name"
+    t.datetime "updated_at", null: false
     t.integer "user_id"
     t.string "user_type"
-    t.string "name"
-    t.text "body"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "chat_users", force: :cascade do |t|
+    t.string "anonymous_name"
     t.integer "chat_id"
+    t.datetime "created_at", null: false
+    t.string "display_name"
+    t.datetime "last_notified_at", precision: nil
+    t.datetime "updated_at", null: false
     t.integer "user_id"
     t.string "user_type"
-    t.string "display_name"
-    t.string "anonymous_name"
-    t.datetime "last_notified_at"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "chats", force: :cascade do |t|
+    t.boolean "anonymous", default: false
+    t.integer "chat_messages_count", default: 0
+    t.datetime "created_at", null: false
     t.integer "parent_id"
     t.string "parent_type"
     t.string "title"
-    t.boolean "anonymous", default: false
-    t.integer "chat_messages_count", default: 0
     t.string "token"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "email_templates", force: :cascade do |t|
-    t.string "template_name"
-    t.string "subject"
-    t.string "from"
     t.string "bcc"
+    t.text "body"
     t.string "cc"
     t.string "content_type"
-    t.text "body"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.datetime "created_at", precision: nil
+    t.string "from"
+    t.string "subject"
+    t.string "template_name"
+    t.datetime "updated_at", precision: nil
   end
 
   create_table "notification_logs", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "email"
     t.integer "notification_id"
     t.integer "report_id"
-    t.integer "user_id"
-    t.string "user_type"
     t.integer "resource_id"
     t.string "resource_type"
-    t.string "email"
     t.boolean "skipped", default: false
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id"
+    t.string "user_type"
   end
 
   create_table "notifications", force: :cascade do |t|
-    t.integer "parent_id"
-    t.string "parent_type"
-    t.integer "user_id"
-    t.string "user_type"
-    t.integer "report_id"
+    t.boolean "attach_report", default: false
     t.string "audience"
     t.text "audience_emails"
+    t.string "bcc"
+    t.text "body"
+    t.string "cc"
+    t.string "content_type"
+    t.datetime "created_at", null: false
     t.boolean "enabled", default: false
-    t.boolean "attach_report", default: false
-    t.string "schedule_type"
+    t.string "from"
     t.integer "immediate_days"
     t.integer "immediate_times"
-    t.string "scheduled_method"
-    t.text "scheduled_dates"
-    t.string "subject"
-    t.text "body"
-    t.string "from"
-    t.string "cc"
-    t.string "bcc"
-    t.string "content_type"
-    t.datetime "last_notified_at"
+    t.datetime "last_notified_at", precision: nil
     t.integer "last_notified_count"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.integer "parent_id"
+    t.string "parent_type"
+    t.integer "report_id"
+    t.string "schedule_type"
+    t.text "scheduled_dates"
+    t.string "scheduled_method"
+    t.string "subject"
+    t.datetime "updated_at", null: false
+    t.integer "user_id"
+    t.string "user_type"
   end
 
   create_table "report_columns", force: :cascade do |t|
-    t.integer "report_id"
-    t.string "name"
-    t.integer "position"
     t.string "as"
+    t.datetime "created_at", null: false
     t.boolean "filter"
+    t.string "name"
     t.string "operation"
+    t.integer "position"
+    t.integer "report_id"
+    t.datetime "updated_at", null: false
     t.text "value_associated"
     t.boolean "value_boolean"
     t.date "value_date"
@@ -149,53 +150,51 @@ ActiveRecord::Schema.define(version: 101) do
     t.integer "value_integer"
     t.integer "value_price"
     t.string "value_string"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "report_scopes", force: :cascade do |t|
-    t.integer "report_id"
-    t.string "name"
     t.boolean "advanced"
+    t.datetime "created_at", null: false
+    t.string "name"
+    t.integer "report_id"
+    t.datetime "updated_at", null: false
     t.boolean "value_boolean"
     t.date "value_date"
     t.decimal "value_decimal"
     t.integer "value_integer"
     t.integer "value_price"
     t.string "value_string"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "reports", force: :cascade do |t|
+    t.datetime "created_at", null: false
     t.integer "created_by_id"
     t.string "created_by_type"
-    t.string "title"
     t.text "description"
     t.string "reportable_class_name"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.string "title"
+    t.datetime "updated_at", null: false
   end
 
   create_table "users", force: :cascade do |t|
-    t.string "encrypted_password", default: "", null: false
-    t.string "reset_password_token"
-    t.datetime "reset_password_sent_at"
-    t.datetime "remember_created_at"
-    t.integer "sign_in_count", default: 0, null: false
-    t.datetime "current_sign_in_at"
-    t.datetime "last_sign_in_at"
+    t.datetime "confirmation_sent_at", precision: nil
+    t.datetime "confirmed_at", precision: nil
+    t.datetime "created_at", null: false
+    t.datetime "current_sign_in_at", precision: nil
     t.string "current_sign_in_ip"
-    t.string "last_sign_in_ip"
-    t.datetime "confirmed_at"
-    t.datetime "confirmation_sent_at"
-    t.string "unconfirmed_email"
     t.string "email", default: "", null: false
+    t.string "encrypted_password", default: "", null: false
     t.string "first_name"
     t.string "last_name"
+    t.datetime "last_sign_in_at", precision: nil
+    t.string "last_sign_in_ip"
+    t.datetime "remember_created_at", precision: nil
+    t.datetime "reset_password_sent_at", precision: nil
+    t.string "reset_password_token"
     t.integer "roles_mask"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.integer "sign_in_count", default: 0, null: false
+    t.string "unconfirmed_email"
+    t.datetime "updated_at", null: false
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
