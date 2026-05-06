@@ -34,9 +34,9 @@ module Admin
 
       col :report, search: Effective::Report.notifiable.sorted, action: :show
 
-      col :notifiable_tomorrow_rows_count, label: 'Tomorrow'
+      col :notifiable_tomorrow_rows_count, visible: false, label: 'Tomorrow'
 
-      col(:rows_count) do |notification|
+      col(:rows_count, visible: false) do |notification|
         notification.report&.collection()&.count.to_i
       end
 
