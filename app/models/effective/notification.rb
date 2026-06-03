@@ -257,7 +257,7 @@ module Effective
 
       if audience_emails?
         # notify_by_schedule
-        Effective::NotificationsMailer.notification(self, nil, email_notification_params) 
+        Effective::NotificationsMailer.notification(self, nil, email_notification_params)
       else
         # notify_by_resources
         resource = report.collection.order('RANDOM()').first
@@ -274,6 +274,9 @@ module Effective
 
         # Send Now functionality. Don't duplicate if it's same day.
         next if already_notified_today?(resource) && !force
+
+        # Don't send to users with a known email delivery error (e.g. a Postmark hard bounce or suppression)
+        next if email_delivery_error?(resource) && !force
 
         print('.')
 
@@ -394,11 +397,11 @@ module Effective
     # 1. The report.report_columns
     # 2. The class's def reportable_view_assigns(view) method
     def assigns_for(resource = nil)
-      return {} unless report.present? 
+      return {} unless report.present?
 
       resource ||= report.reportable.new
       raise('expected an acts_as_reportable resource') unless resource.class.try(:acts_as_reportable?)
-      
+
       report_assigns = Array(report.report_columns).inject({}) do |h, column|
         value = resource.send(column.name)
         h[column.name] = column.format(value); h
@@ -435,6 +438,13 @@ module Effective
       end
 
       emails.presence&.join(', ')
+    end
+
+    # True when the resource's emailable has a known email delivery error (set by effective_postmark)
+    # so we skip sending to avoid Postmark inactive recipient errors
+    def email_delivery_error?(resource)
+      emailable = resource_emailable(resource)
+      emailable.respond_to?(:email_delivery_error) && emailable.email_delivery_error.present?
     end
 
     # A user, owner, or organization column
