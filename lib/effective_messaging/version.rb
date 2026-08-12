@@ -1,3 +1,3 @@
 module EffectiveMessaging
-  VERSION = '0.12.3'.freeze
+  VERSION = 'effective_messaging'.freeze
 end
