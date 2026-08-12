@@ -4,7 +4,7 @@ EffectiveMessaging.setup do |config|
   # config.layout = { application: 'application', admin: 'admin' }
 
   # Mailer Settings
-  # Please see config/initializers/effective_messaging.rb for default effective_* gem mailer settings
+  # Please see config/initializers/effective_resources.rb for default effective_* gem mailer settings
   #
   # Configure the class responsible to send e-mails.
   # config.mailer = 'Effective::MessagingMailer'
